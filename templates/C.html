@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>C Compilation</title>
+  </head>
+  <body>
+    <h1>C compilation</h1>
+    <input type="file" id='f2c' name="file2compile" value="">
+    <button id="cb" type="button" name="button">Compile</button>
+
+    <script type="text/javascript">
+      const shell = require('shelljs');
+      shell.config.execPath = '/usr/bin/node'; //Node binary is needed to execute shell scripts
+
+      let input = document.getElementById('f2c');
+      let submit = document.getElementById('cb')
+      submit.addEventListener('click', function(){
+        var filePath = input.files[0].path;
+        var gcc = 'gcc '
+        console.log(filePath);
+
+        if(filePath !== ' '){
+          shell.exec(gcc + filePath);
+          shell.exec('./a.out');
+          shell.mv('a.out', 'logs/');
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Mutlticompilation</title>
+  </head>
+  <body>
+    <h1>Multicompilation</h1>
+
+    <form class="cl">
+      <select id="selectl" class="l" name="language">
+        <option value="C">C</option>
+        <option value="C++">C++</option>
+      </select>
+      <button type="submit" name="choosedl">Submit</button>
+    </form>
+    <script type="text/javascript">
+
+      var select = document.getElementById('selectl');
+      var language = select.options[select.selectedIndex].value;
+      console.log(language);
+
+      var submit = document.querySelector('button');
+      const electron = require('electron');
+      const ipc = electron.ipcRenderer;
+
+      submit.addEventListener('click', function(e){
+        e.preventDefault();
+        ipc.send('compile:language', language);
+      });
+    </script>
+  </body>
+</html>
