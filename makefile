@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS= -O3 -Wall
-EXEC=test
 LDFLAGS=
+EXEC=test
 
 all: $(EXEC)
 
@@ -12,7 +12,7 @@ test.o: test.c
 	 $(CC) -o $@ -c $< $(CFLAGS)
 
 clean:
-	 rm -rf *.o
+	rm -rf /home/lvndry/Github/impala/_tests/*.o
 
 mrproper: clean
 	 rm -rf $(EXEC)

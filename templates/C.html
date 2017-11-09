@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <title>C Compilation</title>
 
+    <link rel=stylesheet href="../assets/style/gcc.css">
+
     <script type="text/javascript" src="../compilation/c_cpp.js"></script>
     <script type="text/javascript" src="../config.js"> </script>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
@@ -77,10 +79,10 @@
           createMakeFile()
           filePath.push(input_file.files[0].path);
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
-          cmd = "printf 'EXEC=" + filename + "\nLDFLAGS=\n\n";
+          cmd = "printf 'LDFLAGS=\nEXEC=" + filename + "\n\n";
           cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.c', '.o') + "\n";
           cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
-          cmd += "clean:\n\t rm -rf *.o\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+          cmd += "clean:\n\trm -rf " + filePath[0].replace(filename + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
           cmd += "' >> makefile";
           shell.exec(cmd);
           console.log(filePath[0]);
@@ -108,8 +110,7 @@
       submit.click(function(e){
 
         if($("#f2c")[0].files.length !== 0){
-          gcc += '-o ' + filename + ' ' + filePath + ' 2> logs/gcc_erros.log';
-          gcc = "make 2> logs/gcc_erros.log"
+          gcc = "make 2> logs/gcc_erros.log && make clean"
           console.log(gcc);
           shell.exec(gcc);
           printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
