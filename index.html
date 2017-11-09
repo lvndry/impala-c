@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Mutlticompilation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
   </head>
   <body>
     <h1>Multicompilation</h1>
@@ -10,15 +11,13 @@
     <form class="cl">
       <select id="selectl" class="l" name="language">
         <option value="C">C</option>
-        <option value="C++">C++</option>
+        <option value="Cpp">C++</option>
       </select>
       <button type="submit" name="choosedl">Submit</button>
     </form>
     <script type="text/javascript">
 
       var select = document.getElementById('selectl');
-      var language = select.options[select.selectedIndex].value;
-      console.log(language);
 
       var submit = document.querySelector('button');
       const electron = require('electron');
@@ -26,6 +25,8 @@
 
       submit.addEventListener('click', function(e){
         e.preventDefault();
+        var language = select.options[select.selectedIndex].value;
+        console.log(language);
         ipc.send('compile:language', language);
       });
     </script>

@@ -2,16 +2,16 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>C Compilation</title>
+    <title>C++ Compilation</title>
 
-    <script type="text/javascript" src="../compilation/c_cpp.js"></script>
     <script type="text/javascript" src="../config.js"> </script>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>if (window.module) module = window.module;</script>
+
   </head>
   <body>
-    <h1>C compilation</h1>
+    <h1>C++ compilation</h1>
 
     <div class="">
       <input class="f2c" id="f2c" type="file" name="file2compile">
@@ -32,10 +32,10 @@
       <form id="w" class="cop" action="index.html">
         <h4>Warnings</h4>
       </form>
-      <div class="errros" id="gcc_errors">
+      <div class="errros" id="g++_errors">
         <h4>Errors</h4>
       </div>
-      <div id="gcc_errors_content" style="color:red">
+      <div id="cpp_errors_content" style="color:red">
 
       </div>
     </div>
@@ -44,13 +44,11 @@
       let submit = $("#cb");
       let input_file = document.getElementById('f2c');
       let input_folder = document.getElementById('fold2c');
-      let cmd;
-      var gcc = 'gcc -O3 ';
+      var cpp = 'g++ -O3 ';
       var filePath = [];
       var filename;
 
       function printErrors(file){
-        var errorrender = $("#gcc_erros");
         var rawFile = new XMLHttpRequest();
         rawFile.open("GET", file, false);
         rawFile.onreadystatechange = function (){
@@ -58,11 +56,14 @@
             if(rawFile.status === 200 || rawFile.status == 0){
               var allText = rawFile.responseText;
               allText = allText.replace(/[\n\r]/g, '</p></p>');
-              
-              $("#gcc_errors_content").append(allText);
+              //console.log('allText: ' + allText);
 
+              $("#cpp_errors_content").append(allText);
             }
+            else console.log('status not ok');
+
           }
+          else console.log('readyState not ok');
         }
         rawFile.send(null);
       }
@@ -74,60 +75,48 @@
       }
 
       $("#f2c").change(function(){
-          createMakeFile()
           filePath.push(input_file.files[0].path);
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
-          cmd = "printf 'EXEC=" + filename + "\nLDFLAGS=\n\n";
-          cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.c', '.o') + "\n";
-          cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
-          cmd += "clean:\n\t rm -rf *.o\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
-          cmd += "' >> makefile";
-          shell.exec(cmd);
           console.log(filePath[0]);
           console.log('filename: ' + filename);
-          console.log('cmd: ' + cmd);
           setPlaceholers(filename);
       });
 
       $("#fold2c").change(function(event) {
-          createMakeFile()
           let files = event.target.files;
 
           for(let i = 0, len = files.length; i < len; i++)
             filePath.push(files[i].path);
 
-
           filename = filePath[0].split('/').slice(-2)[0];
-          cmd = "printf 'EXEC=" + filename + "\nLDFLAGS=' >> makefile";
           console.log(files);
           console.log(filename);
-          console.log('cmd: ' + cmd);
           setPlaceholers(filename);
       });
 
       submit.click(function(e){
 
         if($("#f2c")[0].files.length !== 0){
-          gcc += '-o ' + filename + ' ' + filePath + ' 2> logs/gcc_erros.log';
-          gcc = "make 2> logs/gcc_erros.log"
-          console.log(gcc);
-          shell.exec(gcc);
-          printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
-          gcc = 'gcc -O3';
+          cpp += '-o ' + filename + ' ' + filePath + ' 2> logs/cpp_errors.log';
+          console.log(cpp);
+          shell.exec(cpp);
+          printErrors('file://' + __dirname + '/../logs/cpp_errors.log')
+          cpp = 'g++ ';
         }
         else if($("#fold2c")[0].files.length !== 0){
-          gcc += '-o ' + filename + ' ';
+          cpp += '-o ' + filename + ' ';
 
           for(let i = 0, len = filePath.length; i < len; i++)
-            gcc += filePath[i] + ' ';
+            cpp += filePath[i] + ' ';
 
-          gcc+= ' 2> logs/gcc_erros.log';
-          console.log(gcc);
-          shell.exec(gcc);
-          printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
-          gcc = 'gcc -O3 ';
+          cpp+= ' 2> logs/cpp_erros.log';
+          console.log(cpp);
+          shell.exec(cpp);
+          printErrors('file://' + __dirname + '/../logs/cpp_errors.log')
+          cpp = 'g++ -O3 ';
         }
       });
+
     </script>
   </body>
 </html>

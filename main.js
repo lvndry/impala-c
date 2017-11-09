@@ -1,8 +1,7 @@
 const electron = require('electron');
 const path = require('path');
 const url = require('url');
-const shell = require('shelljs');
-shell.config.execPath = '/usr/bin/node'; //Node binary is needed to execute shell scripts
+const config = require('./config.js');
 
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
@@ -10,6 +9,7 @@ const ipc = electron.ipcMain;
 
 let mainWindow
 
+//Creation of the main window
 function createWindow() {
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
@@ -22,9 +22,10 @@ function createWindow() {
   })
 }
 
-//Load the page depending on what language is chosen
+//Load a page depending on what language is chosen
 ipc.on('compile:language', function(state, lang){
-  let renderer = 'templates/' + lang + '.html';
+  console.log(lang);
+  let renderer = './templates/' + lang + '.html';
 
   mainWindow.loadURL(url.format({
     pathname : path.join(__dirname, renderer),
@@ -46,6 +47,3 @@ app.on('activate', function() {
     createWindow()
   }
 })
-
-//shell.exec('gcc test/test.c');
-//shell.exec('./a.out');
