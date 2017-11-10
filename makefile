@@ -1,18 +1,24 @@
 CC=gcc
 CFLAGS= -O3 -Wall
 LDFLAGS=
-EXEC=test
+EXEC=ct
 
 all: $(EXEC)
 
-test: /home/lvndry/Github/impala/_tests/test.o
+ct: user.o main.o hello.o 
 	 $(CC) -o $@ $^ $(LDFLAGS)
 
-test.o: test.c
+user.o: user.c
+	 $(CC) -o $@ -c $< $(CFLAGS)
+
+main.o: main.c
+	 $(CC) -o $@ -c $< $(CFLAGS)
+
+hello.o: hello.c
 	 $(CC) -o $@ -c $< $(CFLAGS)
 
 clean:
-	rm -rf /home/lvndry/Github/impala/_tests/*.o
+	 rm -rf /home/lvndry/Github/impala/_tests/ct/*.o
 
 mrproper: clean
 	 rm -rf $(EXEC)

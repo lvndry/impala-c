@@ -43,24 +43,25 @@
     </div>
 
     <script type="text/javascript">
-      let submit = $("#cb");
+      let cmd;
+      let filename;
+      let filePath = [], fileNames = [];
+      let gcc = 'gcc -O3 ';
       let input_file = document.getElementById('f2c');
       let input_folder = document.getElementById('fold2c');
-      let cmd;
-      var gcc = 'gcc -O3 ';
-      var filePath = [];
-      var filename;
-
+      let projectName;
+      let submit = $("#cb");
+      
       function printErrors(file){
-        var errorrender = $("#gcc_erros");
-        var rawFile = new XMLHttpRequest();
+        let errorrender = $("#gcc_erros");
+        let rawFile = new XMLHttpRequest();
         rawFile.open("GET", file, false);
         rawFile.onreadystatechange = function (){
           if(rawFile.readyState === 4){
             if(rawFile.status === 200 || rawFile.status == 0){
-              var allText = rawFile.responseText;
-              allText = allText.replace(/[\n\r]/g, '</p></p>');
-              
+              let allText = "<p>";
+                  allText += rawFile.responseText;
+                  allText = allText.replace(/[\n\r]/g, '</p><p>'); //replace all \n or \r by <p></p>
               $("#gcc_errors_content").append(allText);
 
             }
@@ -82,7 +83,7 @@
           cmd = "printf 'LDFLAGS=\nEXEC=" + filename + "\n\n";
           cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.c', '.o') + "\n";
           cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
-          cmd += "clean:\n\trm -rf " + filePath[0].replace(filename + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+          cmd += "clean:\n\t rm -rf " + filePath[0].replace(filename + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
           cmd += "' >> makefile";
           shell.exec(cmd);
           console.log(filePath[0]);
@@ -93,16 +94,37 @@
 
       $("#fold2c").change(function(event) {
           createMakeFile()
-          let files = event.target.files;
+          var files = input_folder;
+          console.log(input_folder.files)
+          for(let i = 0, len = files.files.length; i < len; i++){
+            filePath.push(files.files[i].path);
+            console.log("filePath: " + filePath[i]);
+            filename = (filePath[i].split('/').slice(-2)[1].split('.')[0]);
+            fileNames.push(filename);
+            console.log(fileNames[i]);
+          }
+          projectName = filePath[0].split('/').slice(-2)[0];
+          console.log('ProjectName: ' + projectName);
+          cmd = "printf 'LDFLAGS=\nEXEC=" + projectName + "\n\n";
+          cmd += "all: $(EXEC)\n\n"; 
+          cmd += projectName + ": ";
 
-          for(let i = 0, len = files.length; i < len; i++)
-            filePath.push(files[i].path);
+          for(let i = 0, len = filePath.length; i < len; i++){
+            //cmd += filePath[i].replace('.c', '.o') + " ";
+            cmd += fileNames[i] + ".o ";
+          }
 
+          cmd += "\n\t $(CC) -o $@ $^ $(LDFLAGS)\n\n"
+        
+          for(let i = 0, len = filePath.length; i < len; i++){
+            cmd += fileNames[i] + ".o: "
+            cmd += fileNames[i] + ".c\n";
+            cmd += "\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
+          }
 
-          filename = filePath[0].split('/').slice(-2)[0];
-          cmd = "printf 'EXEC=" + filename + "\nLDFLAGS=' >> makefile";
-          console.log(files);
-          console.log(filename);
+          cmd += "clean:\n\t rm -rf " + filePath[0].replace(fileNames[0] + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+          cmd += "' >> makefile"
+          shell.exec(cmd);
           console.log('cmd: ' + cmd);
           setPlaceholers(filename);
       });
@@ -114,19 +136,6 @@
           console.log(gcc);
           shell.exec(gcc);
           printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
-          gcc = 'gcc -O3';
-        }
-        else if($("#fold2c")[0].files.length !== 0){
-          gcc += '-o ' + filename + ' ';
-
-          for(let i = 0, len = filePath.length; i < len; i++)
-            gcc += filePath[i] + ' ';
-
-          gcc+= ' 2> logs/gcc_erros.log';
-          console.log(gcc);
-          shell.exec(gcc);
-          printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
-          gcc = 'gcc -O3 ';
         }
       });
     </script>
