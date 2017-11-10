@@ -6,5 +6,130 @@
   </head>
   <body>
     <h1>Go compilation</h1>
+      <h1>C compilation</h1>
+
+    <div class="">
+      <input class="f2c" id="f2c" type="file" name="file2compile">
+      <input class="fold2c" id="fold2c" type="file" name="folder2compile" multiple />
+
+      <button id="cb" type="button" name="button">Compile</button>
+    </div>
+
+    <div class="">
+
+      <form id="of" class="cop" action="index.html">
+        <h4>Output Format</h4>
+        <input type="radio" name="ot" value="-S"> <input id="dots" type="text" name="" value="" placeholder="a .s file">
+        <input type="radio" name="ot" value="-c"> <input id="doto" type="text" name="" value="" placeholder="a .o file">
+        <input type="radio" name="ot" value="-o"> <input id="dotout" type="text" name="" value="" placeholder="a .out file">
+      </form>
+
+      <form id="w" class="cop" action="index.html">
+        <h4>Warnings</h4>
+      </form>
+      <div class="errros" id="gcc_errors">
+        <h4>Errors</h4>
+      </div>
+      <div id="gcc_errors_content" style="color:red">
+
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      let cmd;
+      let filename;
+      let filePath = [], fileNames = [];
+      let gcc;
+      let input_file = document.getElementById('f2c');
+      let input_folder = document.getElementById('fold2c');
+      let projectName;
+      let submit = $("#cb");
+      
+      function printErrors(file){
+        let errorrender = $("#gcc_erros");
+        let rawFile = new XMLHttpRequest();
+        rawFile.open("GET", file, false);
+        rawFile.onreadystatechange = function (){
+          if(rawFile.readyState === 4){
+            if(rawFile.status === 200 || rawFile.status == 0){
+              let allText = "<p>";
+                  allText += rawFile.responseText;
+                  allText = allText.replace(/[\n\r]/g, '</p><p>'); //replace all \n or \r by <p></p>
+              $("#gcc_errors_content").append(allText);
+
+            }
+          }
+        }
+        rawFile.send(null);
+      }
+
+      function setPlaceholers(name){
+        $("#dots").attr('placeholder', 'By default: ' + name + '.s');
+        $("#doto").attr('placeholder', 'By default: ' + name + '.o');
+        $("#dotout").attr('placeholder', 'By default: ' + name + '.out');
+      }
+
+      $("#f2c").change(function(){
+      	filePath = [], fileNames = [];
+        createMakeFile("gcc")
+        filePath.push(input_file.files[0].path);
+        filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
+        cmd = "printf 'LDFLAGS=\nEXEC=" + filename + "\n\n";
+        cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.c', '.o') + "\n";
+        cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
+        cmd += "clean:\n\t rm -rf " + filePath[0].replace(filename + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+        cmd += "' >> makefile";
+        shell.exec(cmd);
+        console.log(filePath[0]);
+        console.log('filename: ' + filename);
+        console.log('cmd: ' + cmd);
+        setPlaceholers(filename);
+      });
+
+      $("#fold2c").change(function(event) {
+      	filePath = [], fileNames = [];
+        createMakeFile("gcc")
+        var files = input_folder;
+        console.log(input_folder.files)
+        
+        for(let i = 0, len = files.files.length; i < len; i++){
+        	filePath.push(files.files[i].path);
+            console.log("filePath: " + filePath[i]);
+            filename = (filePath[i].split('/').slice(-2)[1].split('.')[0]);
+            fileNames.push(filename);
+            console.log(fileNames[i]);
+        }
+          
+        projectName = filePath[0].split('/').slice(-2)[0];
+        console.log('ProjectName: ' + projectName);
+        cmd = "printf 'LDFLAGS=\nEXEC=" + projectName + "\n\n";
+        cmd += "all: $(EXEC)\n\n"; 
+        cmd += projectName + ": ";
+
+        for(let i = 0, len = filePath.length; i < len; i++){
+          cmd += fileNames[i] + ".o ";
+        }
+
+        cmd += "\n\t $(CC) -o $@ $^ $(LDFLAGS)\n\n"
+        
+		for(let i = 0, len = filePath.length; i < len; i++){
+			cmd += fileNames[i] + ".o: "
+        	cmd += fileNames[i] + ".c\n";
+            cmd += "\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
+        }
+
+        cmd += "clean:\n\t rm -rf " + filePath[0].replace(fileNames[0] + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+        cmd += "' >> makefile"
+        shell.exec(cmd);
+        console.log('cmd: ' + cmd);
+        setPlaceholers(filename);
+      });
+
+      submit.click(function(e){
+      	gcc = "make 2> logs/gcc_erros.log && make clean"
+        console.log(gcc);
+        shell.exec(gcc);
+        printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
+      });
   </body>
 </html>

@@ -77,13 +77,14 @@
       }
 
       $("#f2c").change(function(){
+          filePath = [], fileNames = [];
           createMakeFile("gcc")
           filePath.push(input_file.files[0].path);
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
           cmd = "printf 'LDFLAGS=\nEXEC=" + filename + "\n\n";
           cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.c', '.o') + "\n";
           cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
-          cmd += "clean:\n\t rm -rf " + filePath[0].replace(filename + ".cpp", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+          cmd += "clean:\n\t rm -rf " + filePath[0].replace(filename + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
           cmd += "' >> makefile";
           shell.exec(cmd);
           console.log(filePath[0]);
@@ -93,6 +94,7 @@
       });
 
       $("#fold2c").change(function(event) {
+          filePath = [], fileNames = [];
           createMakeFile("gcc")
           var files = input_folder;
           console.log(input_folder.files)
@@ -117,7 +119,7 @@
         
           for(let i = 0, len = filePath.length; i < len; i++){
             cmd += fileNames[i] + ".o: "
-            cmd += fileNames[i] + ".c\n";
+            cmd += filePath[i] + "\n";
             cmd += "\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
           }
 

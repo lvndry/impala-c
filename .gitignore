@@ -1,5 +1,5 @@
 #compiled files
-a.out
+*.out
 
 #Modules
 node_modules
