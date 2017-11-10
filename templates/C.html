@@ -46,7 +46,7 @@
       let cmd;
       let filename;
       let filePath = [], fileNames = [];
-      let gcc = 'gcc -O3 ';
+      let gcc;
       let input_file = document.getElementById('f2c');
       let input_folder = document.getElementById('fold2c');
       let projectName;
@@ -77,13 +77,13 @@
       }
 
       $("#f2c").change(function(){
-          createMakeFile()
+          createMakeFile("gcc")
           filePath.push(input_file.files[0].path);
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
           cmd = "printf 'LDFLAGS=\nEXEC=" + filename + "\n\n";
           cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.c', '.o') + "\n";
           cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
-          cmd += "clean:\n\t rm -rf " + filePath[0].replace(filename + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+          cmd += "clean:\n\t rm -rf " + filePath[0].replace(filename + ".cpp", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
           cmd += "' >> makefile";
           shell.exec(cmd);
           console.log(filePath[0]);
@@ -93,7 +93,7 @@
       });
 
       $("#fold2c").change(function(event) {
-          createMakeFile()
+          createMakeFile("gcc")
           var files = input_folder;
           console.log(input_folder.files)
           for(let i = 0, len = files.files.length; i < len; i++){
@@ -110,7 +110,6 @@
           cmd += projectName + ": ";
 
           for(let i = 0, len = filePath.length; i < len; i++){
-            //cmd += filePath[i].replace('.c', '.o') + " ";
             cmd += fileNames[i] + ".o ";
           }
 
@@ -130,13 +129,10 @@
       });
 
       submit.click(function(e){
-
-        if($("#f2c")[0].files.length !== 0){
           gcc = "make 2> logs/gcc_erros.log && make clean"
           console.log(gcc);
           shell.exec(gcc);
           printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
-        }
       });
     </script>
   </body>

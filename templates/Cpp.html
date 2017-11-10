@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>C++ Compilation</title>
 
+    <script type="text/javascript" src="../compilation/c_cpp.js"> </script>
     <script type="text/javascript" src="../config.js"> </script>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
@@ -41,29 +42,29 @@
     </div>
 
     <script type="text/javascript">
-      let submit = $("#cb");
+      let cmd;
+      let filename;
+      let filePath = [], fileNames = [];
+      let gcc;
       let input_file = document.getElementById('f2c');
       let input_folder = document.getElementById('fold2c');
-      var cpp = 'g++ -O3 ';
-      var filePath = [];
-      var filename;
-
+      let projectName;
+      let submit = $("#cb");
+      
       function printErrors(file){
-        var rawFile = new XMLHttpRequest();
+        let errorrender = $("#gcc_erros");
+        let rawFile = new XMLHttpRequest();
         rawFile.open("GET", file, false);
         rawFile.onreadystatechange = function (){
           if(rawFile.readyState === 4){
             if(rawFile.status === 200 || rawFile.status == 0){
-              var allText = rawFile.responseText;
-              allText = allText.replace(/[\n\r]/g, '</p></p>');
-              //console.log('allText: ' + allText);
+              let allText = "<p>";
+                  allText += rawFile.responseText;
+                  allText = allText.replace(/[\n\r]/g, '</p><p>'); //replace all \n or \r by <p></p>
+              $("#gcc_errors_content").append(allText);
 
-              $("#cpp_errors_content").append(allText);
             }
-            else console.log('status not ok');
-
           }
-          else console.log('readyState not ok');
         }
         rawFile.send(null);
       }
@@ -75,48 +76,63 @@
       }
 
       $("#f2c").change(function(){
+          createMakeFile("g++")
           filePath.push(input_file.files[0].path);
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
+          cmd = "printf 'LDFLAGS=\nEXEC=" + filename + "\n\n";
+          cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.cpp', '.o') + "\n";
+          cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
+          cmd += "clean:\n\t rm -rf " + filePath[0].replace(filename + ".cpp", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+          cmd += "' >> makefile";
+          shell.exec(cmd);
           console.log(filePath[0]);
           console.log('filename: ' + filename);
+          console.log('cmd: ' + cmd);
           setPlaceholers(filename);
       });
 
       $("#fold2c").change(function(event) {
-          let files = event.target.files;
+          createMakeFile("g++")
+          var files = input_folder;
+          console.log(input_folder.files)
+          for(let i = 0, len = files.files.length; i < len; i++){
+            filePath.push(files.files[i].path);
+            console.log("filePath: " + filePath[i]);
+            filename = (filePath[i].split('/').slice(-2)[1].split('.')[0]);
+            fileNames.push(filename);
+            console.log(fileNames[i]);
+          }
+          projectName = filePath[0].split('/').slice(-2)[0];
+          console.log('ProjectName: ' + projectName);
+          cmd = "printf 'LDFLAGS=\nEXEC=" + projectName + "\n\n";
+          cmd += "all: $(EXEC)\n\n"; 
+          cmd += projectName + ": ";
 
-          for(let i = 0, len = files.length; i < len; i++)
-            filePath.push(files[i].path);
+          for(let i = 0, len = filePath.length; i < len; i++){
+            cmd += fileNames[i] + ".o ";
+          }
 
-          filename = filePath[0].split('/').slice(-2)[0];
-          console.log(files);
-          console.log(filename);
+          cmd += "\n\t $(CC) -o $@ $^ $(LDFLAGS)\n\n"
+        
+          for(let i = 0, len = filePath.length; i < len; i++){
+            cmd += fileNames[i] + ".o: "
+            cmd += fileNames[i] + ".cpp\n";
+            cmd += "\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
+          }
+
+          cmd += "clean:\n\t rm -rf " + filePath[0].replace(fileNames[0] + ".cpp", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+          cmd += "' >> makefile"
+          shell.exec(cmd);
+          console.log('cmd: ' + cmd);
           setPlaceholers(filename);
       });
 
       submit.click(function(e){
-
-        if($("#f2c")[0].files.length !== 0){
-          cpp += '-o ' + filename + ' ' + filePath + ' 2> logs/cpp_errors.log';
-          console.log(cpp);
-          shell.exec(cpp);
-          printErrors('file://' + __dirname + '/../logs/cpp_errors.log')
-          cpp = 'g++ ';
-        }
-        else if($("#fold2c")[0].files.length !== 0){
-          cpp += '-o ' + filename + ' ';
-
-          for(let i = 0, len = filePath.length; i < len; i++)
-            cpp += filePath[i] + ' ';
-
-          cpp+= ' 2> logs/cpp_erros.log';
-          console.log(cpp);
-          shell.exec(cpp);
-          printErrors('file://' + __dirname + '/../logs/cpp_errors.log')
-          cpp = 'g++ -O3 ';
-        }
+          gcc = "make 2> logs/cpp_errors.log && make clean"
+          console.log(gcc);
+          shell.exec(gcc);
+          printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
       });
-
     </script>
   </body>
 </html>
