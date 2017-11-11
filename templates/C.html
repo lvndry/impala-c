@@ -47,9 +47,11 @@
       let filename;
       let filePath = [], fileNames = [];
       let gcc;
-      let input_file = document.getElementById('f2c');
-      let input_folder = document.getElementById('fold2c');
+      let input_file = document.getElementById("f2c");
+      let input_folder = document.getElementById("fold2c");
       let projectName;
+      let pwd = shell.exec("pwd");
+          pwd = pwd.slice(0, -1);
       let submit = $("#cb");
       
       function printErrors(file){
@@ -78,18 +80,19 @@
 
       $("#f2c").change(function(){
           filePath = [], fileNames = [];
-          createMakeFile("gcc")
+          
           filePath.push(input_file.files[0].path);
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
-          cmd = "printf 'LDFLAGS=\nEXEC=" + filename + "\n\n";
-          cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.c', '.o') + "\n";
-          cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
-          cmd += "clean:\n\t rm -rf " + filePath[0].replace(filename + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
-          cmd += "' >> makefile";
-          shell.exec(cmd);
+          //cmd = "printf 'LDFLAGS=\nEXEC=" + filename + "\n\n";
+          //cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.c', '.o') + "\n";
+          //cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
+          //cmd += ".PHONY: clean\n\n";
+          //cmd += "clean:\n\t rm -rf " + pwd + "/*.o" + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n";
+          //cmd += "' >> makefile";
+          //shell.exec(cmd);
+          createCMakeFile("gcc", filename, filePath)
           console.log(filePath[0]);
           console.log('filename: ' + filename);
-          console.log('cmd: ' + cmd);
           setPlaceholers(filename);
       });
 
@@ -123,7 +126,9 @@
             cmd += "\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
           }
 
-          cmd += "clean:\n\t rm -rf " + filePath[0].replace(fileNames[0] + ".c", "*.o") + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
+          cmd += ".PHONY: clean\n\n";
+          console.log(pwd);
+          cmd += "clean:\n\t rm -rf " + pwd + "/*.o" + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
           cmd += "' >> makefile"
           shell.exec(cmd);
           console.log('cmd: ' + cmd);
@@ -131,7 +136,7 @@
       });
 
       submit.click(function(e){
-          gcc = "make 2> logs/gcc_erros.log && make clean"
+          gcc = "make 2> logs/gcc_erros.log && make .PHONY"
           console.log(gcc);
           shell.exec(gcc);
           printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
