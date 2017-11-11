@@ -1,0 +1,10 @@
+/home/lvndry/Github/impala/_tests/main.c: In function ‘main’:
+/home/lvndry/Github/impala/_tests/main.c:3:14: warning: unused parameter ‘argc’ [-Wunused-parameter]
+ int main(int argc, char const *argv[]) {
+              ^~~~
+/home/lvndry/Github/impala/_tests/main.c:3:32: warning: unused parameter ‘argv’ [-Wunused-parameter]
+ int main(int argc, char const *argv[]) {
+                                ^~~~
+rm: cannot remove '_tests': Is a directory
+make[1]: *** [makefile:187: all] Error 1
+make: *** [makefile:138: release] Error 2

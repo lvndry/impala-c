@@ -1,1 +1,7 @@
-make: *** No rule to make target 'user.cpp', needed by 'user.o'.  Stop.
+/home/lvndry/Github/impala/_tests/cpp/main.cpp: In function ‘int main(int, const char**)’:
+/home/lvndry/Github/impala/_tests/cpp/main.cpp:5:14: warning: unused parameter ‘argc’ [-Wunused-parameter]
+ int main(int argc, char const *argv[]) {
+              ^~~~
+/home/lvndry/Github/impala/_tests/cpp/main.cpp:5:37: warning: unused parameter ‘argv’ [-Wunused-parameter]
+ int main(int argc, char const *argv[]) {
+                                     ^

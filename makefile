@@ -1,13 +1,14 @@
-#### MAKEFILE FOR test####
+#### MAKEFILE FOR CPP####
 # The name of the executable to be created
 ### Thanks to https://github.com/mbcrawfo/GenericMakefile/blob/master/c/Makefile ###
 ### Project Settings ###
-BIN_NAME := test
+BIN_NAME := cpp
 # Compiler used
-CC ?= gcc
+CCXX ?= g++
 # Extension of source files used in the project
-SRC_EXT = c
-SRC_PATH = /home/lvndry/Github/impala/_tests/test.c
+SRC_EXT = cpp
+# Path to the source directory, relative to the makefile
+SRC_PATH = /home/lvndry/Github/impala/_tests/cpp
 # Space-separated pkg-config libraries used by this project
 LIBS =
 # General compiler flags
@@ -17,7 +18,8 @@ RCOMPILE_FLAGS = -D NDEBUG
 # Additional debug-specific flags
 DCOMPILE_FLAGS = -D DEBUG
 # Add additional include paths
-INCLUDES = -I $(SRC_PATH)# General linker settings
+INCLUDES = -I $(SRC_PATH)
+# General linker settings
 LINK_FLAGS =
 # Destination directory, like a jail or mounted system
 DESTDIR = /
@@ -43,21 +45,21 @@ INSTALL_DATA = $(INSTALL) -m 644
 
 # Append pkg-config specific libraries if need be
 ifneq ($(LIBS),)
-COMPILE_FLAGS += $(shell pkg-config --cflags $(LIBS))
-LINK_FLAGS += $(shell pkg-config --libs $(LIBS))
+	COMPILE_FLAGS += $(shell pkg-config --cflags $(LIBS))
+	LINK_FLAGS += $(shell pkg-config --libs $(LIBS))
 endif
 
 # Verbose option, to output compile and link commands
 export V := false
 export CMD_PREFIX := @
 ifeq ($(V),true)
-CMD_PREFIX :=
+	CMD_PREFIX :=
 endif
 
 # Combine compiler and linker flags
-release: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)
+release: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)
+debug: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)
 release: export LDFLAGS := $(LDFLAGS) $(LINK_FLAGS) $(RLINK_FLAGS)
-debug: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)
 debug: export LDFLAGS := $(LDFLAGS) $(LINK_FLAGS) $(DLINK_FLAGS)
 
 # Build and output paths
@@ -71,9 +73,7 @@ install: export BIN_PATH := bin/release
 ifeq ($(UNAME_S),Darwin)
 	SOURCES = $(shell find $(SRC_PATH) -name "*.$(SRC_EXT)" | sort -k 1nr | cut -f2-)
 else
-	SOURCES = $(shell find $(SRC_PATH) -name "*.$(SRC_EXT)" -printf "%T@	%p
-" \ 
-			 | sort -k 1nr | cut -f2-)
+	SOURCES = $(shell find $(SRC_PATH) -name "*.$(SRC_EXT)" -printf "%T@\t%p\n" | sort -k 1nr | cut -f2-)
 endif
 # fallback in case the above fails
 rwildcard = $(foreach d, $(wildcard $1*), $(call rwildcard,$d/,$2) \
@@ -96,7 +96,7 @@ ifeq ($(UNAME_S),Darwin)
 	END_TIME = read st < $(TIME_FILE) ; \
 	$(RM) $(TIME_FILE) ; \ 
 	st=$$((`$(CUR_TIME)` - $$st)) ; \
-echo $$st
+	echo $$st
 else
 	TIME_FILE = $(dir $@).$(notdir $@)_time
 	START_TIME = date "+%s" > $(TIME_FILE)
@@ -111,16 +111,16 @@ USE_VERSION := false
 # If this is not a git repo or the repo has no tags, git describe will return non-zero
 ifeq ($(shell git describe > /dev/null 2>&1 ; echo $$?), 0)
 	USE_VERSION := true
-VERSION := $(shell git describe --tags --long --dirty --always | \ 
+	VERSION := $(shell git describe --tags --long --dirty --always | \ 
 		sed "s/v([0-9]*).([0-9]*).([0-9]*)-?.*-([0-9]*)-(.*)/    /g")
 	VERSION_MAJOR := $(word 1, $(VERSION))
 	VERSION_MINOR := $(word 2, $(VERSION))
 	VERSION_PATCH := $(word 3, $(VERSION))
 	VERSION_REVISION := $(word 4, $(VERSION))
 	VERSION_HASH := $(word 5, $(VERSION))
-VERSION_STRING := \ 
-		"$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH).$(VERSION_REVISION)-$(VERSION_HASH)" 
-	override CFLAGS := $(CFLAGS) \
+	VERSION_STRING := \ 
+		"$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH).$(VERSION_REVISION)-$(VERSION_HASH)"
+	override CXXFLAGS := $(CXXFLAGS) \
 		-D VERSION_MAJOR=$(VERSION_MAJOR) \
 		-D VERSION_MINOR=$(VERSION_MINOR) \
 		-D VERSION_PATCH=$(VERSION_PATCH) \
@@ -135,10 +135,10 @@ ifeq ($(USE_VERSION), true)
 else
 	@echo "Beginning release build"
 endif
-@$(START_TIME)
-@$(MAKE) all --no-print-directory
-@echo -n "Total build time: "
-@$(END_TIME)
+	@$(START_TIME)
+	@$(MAKE) all --no-print-directory
+	@echo -n "Total build time: "
+	@$(END_TIME)
 
 # Debug build for gdb debugging
 .PHONY: debug
@@ -146,7 +146,7 @@ debug: dirs
 ifeq ($(USE_VERSION), true)
 	@echo "Beginning debug build v$(VERSION_STRING)"
 else
-@echo "Beginning debug build"
+	@echo "Beginning debug build"
 endif
 	@$(START_TIME)
 	@$(MAKE) all --no-print-directory
@@ -191,7 +191,7 @@ all: $(BIN_PATH)/$(BIN_NAME)
 $(BIN_PATH)/$(BIN_NAME): $(OBJECTS)
 	@echo "Linking: $@"
 	@$(START_TIME)
-	$(CMD_PREFIX)$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+	$(CMD_PREFIX)$(CXX) $(OBJECTS) $(LDFLAGS) -o $@
 	@echo -en "	 Link time: "
 	@$(END_TIME)
 
@@ -204,6 +204,6 @@ $(BIN_PATH)/$(BIN_NAME): $(OBJECTS)
 $(BUILD_PATH)/%.o: $(SRC_PATH)/%.$(SRC_EXT)
 	@echo "Compiling: $< -> $@"
 	@$(START_TIME)
-	$(CMD_PREFIX)$(CC) $(CFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@
+	$(CMD_PREFIX)$(CXX) $(CXXFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@
 	@echo -en "	 Compile time: "
 	@$(END_TIME)

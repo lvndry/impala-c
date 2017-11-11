@@ -79,64 +79,46 @@
       }
 
       $("#f2c").change(function(){
-          filePath = [], fileNames = [];
-          
-          filePath.push(input_file.files[0].path);
+          fileNames = []; filePath = [];
+
+          filePath.push(input_file.files[0].path.split('/').slice(0, -1).join('/'));
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
-          //cmd = "printf 'LDFLAGS=\nEXEC=" + filename + "\n\n";
-          //cmd += "all: $(EXEC)\n\n" + filename + ": " + filePath[0].replace('.c', '.o') + "\n";
-          //cmd += "\t $(CC) -o $@ $^ $(LDFLAGS)\n\n" + filename + ".o: " + filename + ".c\n\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
-          //cmd += ".PHONY: clean\n\n";
-          //cmd += "clean:\n\t rm -rf " + pwd + "/*.o" + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n";
-          //cmd += "' >> makefile";
-          //shell.exec(cmd);
-          createCMakeFile("gcc", filename, filePath)
+          
+          console.log('typeof: ' + typeof(filename))
+
+          createMakeFile("gcc", filename, filePath)
+          setPlaceholers(filename);
+          
           console.log(filePath[0]);
           console.log('filename: ' + filename);
-          setPlaceholers(filename);
       });
 
       $("#fold2c").change(function(event) {
-          filePath = [], fileNames = [];
-          createMakeFile("gcc")
+          fileNames = []; filePath = [];
           var files = input_folder;
-          console.log(input_folder.files)
+          
+          filePath.push(files.files[0].path.split('/').slice(0, -1).join('/'));
+          
           for(let i = 0, len = files.files.length; i < len; i++){
-            filePath.push(files.files[i].path);
-            console.log("filePath: " + filePath[i]);
-            filename = (filePath[i].split('/').slice(-2)[1].split('.')[0]);
+            filename = (files.files[i].path.split('/').slice(-2)[1].split('.')[0]);
             fileNames.push(filename);
-            console.log(fileNames[i]);
-          }
-          projectName = filePath[0].split('/').slice(-2)[0];
-          console.log('ProjectName: ' + projectName);
-          cmd = "printf 'LDFLAGS=\nEXEC=" + projectName + "\n\n";
-          cmd += "all: $(EXEC)\n\n"; 
-          cmd += projectName + ": ";
-
-          for(let i = 0, len = filePath.length; i < len; i++){
-            cmd += fileNames[i] + ".o ";
+            console.log("filename: " + fileNames[i]);
           }
 
-          cmd += "\n\t $(CC) -o $@ $^ $(LDFLAGS)\n\n"
-        
-          for(let i = 0, len = filePath.length; i < len; i++){
-            cmd += fileNames[i] + ".o: "
-            cmd += filePath[i] + "\n";
-            cmd += "\t $(CC) -o $@ -c $< $(CFLAGS)\n\n"
-          }
-
-          cmd += ".PHONY: clean\n\n";
-          console.log(pwd);
-          cmd += "clean:\n\t rm -rf " + pwd + "/*.o" + "\n\nmrproper: clean\n\t rm -rf $(EXEC)\n"
-          cmd += "' >> makefile"
-          shell.exec(cmd);
-          console.log('cmd: ' + cmd);
+          projectName = filePath[0].split('/').slice(-1).join('/');
+          
+          createMakeFile("gcc", projectName, filePath)
           setPlaceholers(filename);
+
+          console.log(input_folder.files);
+          console.log(input_folder.files[0].path);
+          console.log("filePath: " + filePath[0]);
+          console.log('ProjectName: ' + projectName);
+
       });
 
       submit.click(function(e){
-          gcc = "make 2> logs/gcc_erros.log && make .PHONY"
+          gcc = "make 2> logs/gcc_erros.log && make clean"
           console.log(gcc);
           shell.exec(gcc);
           printErrors('file://' + __dirname + '/../logs/gcc_erros.log')

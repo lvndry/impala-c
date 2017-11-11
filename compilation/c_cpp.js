@@ -1,15 +1,27 @@
 require('../config.js');
 
-function createCMakeFile(compiler, execName, filePath, dest="/"){
+function createMakeFile(compiler, execName, filePath, dest="/"){
 	let cmd = "printf '";
-		cmd += "#### MAKEFILE FOR " + execName + "####\n# The name of the executable to be created\n"
+		cmd += "#### MAKEFILE FOR " + execName.toUpperCase() + "####\n"
+		cmd += "# The name of the executable to be created\n"
 		cmd += "### Thanks to https://github.com/mbcrawfo/GenericMakefile/blob/master/c/Makefile ###\n"
 		cmd += "### Project Settings ###\n"
 		cmd += "BIN_NAME := " + execName + "\n"
 		cmd += "# Compiler used\n"
-		cmd += "CC ?= " + compiler + "\n"
-		cmd += "# Extension of source files used in the project\n"
-		cmd += "SRC_EXT = c\n" 
+		
+		if(compiler === "gcc"){
+			cmd += "CC ?= " + compiler + "\n"
+			cmd += "# Extension of source files used in the project\n"
+			cmd += "SRC_EXT = c\n" 
+		}
+
+		else if(compiler === "g++"){
+			cmd += "CCXX ?= " + compiler + "\n"
+			cmd += "# Extension of source files used in the project\n"
+			cmd += "SRC_EXT = cpp\n" 
+		}
+
+		cmd += "# Path to the source directory, relative to the makefile\n"
 		cmd += "SRC_PATH = " + filePath + "\n"
 		cmd += "# Space-separated pkg-config libraries used by this project\n"
 		cmd += "LIBS =\n"
@@ -20,7 +32,7 @@ function createCMakeFile(compiler, execName, filePath, dest="/"){
 		cmd += "# Additional debug-specific flags\n"
 		cmd += "DCOMPILE_FLAGS = -D DEBUG\n"
 		cmd += "# Add additional include paths\n"
-		cmd += "INCLUDES = -I $(SRC_PATH)"
+		cmd += "INCLUDES = -I $(SRC_PATH)\n"
 		cmd += "# General linker settings\n"
 		cmd += "LINK_FLAGS =\n"
 		cmd += "# Destination directory, like a jail or mounted system\n"
@@ -42,19 +54,27 @@ function createCMakeFile(compiler, execName, filePath, dest="/"){
 		cmd += "INSTALL_DATA = $(INSTALL) -m 644\n\n"
 		cmd += "# Append pkg-config specific libraries if need be\n"
 		cmd += "ifneq ($(LIBS),)\n"
-		cmd += "COMPILE_FLAGS += $(shell pkg-config --cflags $(LIBS))\n"
-		cmd += "LINK_FLAGS += $(shell pkg-config --libs $(LIBS))\n"
+		cmd += "\tCOMPILE_FLAGS += $(shell pkg-config --cflags $(LIBS))\n"
+		cmd += "\tLINK_FLAGS += $(shell pkg-config --libs $(LIBS))\n"
 		cmd += "endif\n\n"
 		cmd += "# Verbose option, to output compile and link commands\n"
 		cmd += "export V := false\n"
 		cmd += "export CMD_PREFIX := @\n"
 		cmd += "ifeq ($(V),true)\n"
-		cmd += "CMD_PREFIX :=\n"
+		cmd += "\tCMD_PREFIX :=\n"
 		cmd += "endif\n\n"
 		cmd += "# Combine compiler and linker flags\n"
-		cmd += "release: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)\n"
+
+		if(compiler === "gcc"){
+			cmd += "release: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)\n"
+			cmd += "debug: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)\n"
+		}
+		else if(compiler === "g++"){
+			cmd += "release: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)\n"
+			cmd += "debug: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)\n"
+		}
+
 		cmd += "release: export LDFLAGS := $(LDFLAGS) $(LINK_FLAGS) $(RLINK_FLAGS)\n"
-		cmd += "debug: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)\n"
 		cmd += "debug: export LDFLAGS := $(LDFLAGS) $(LINK_FLAGS) $(DLINK_FLAGS)\n\n"
 		cmd += "# Build and output paths\n"
 		cmd += "release: export BUILD_PATH := build/release\n"
@@ -66,7 +86,7 @@ function createCMakeFile(compiler, execName, filePath, dest="/"){
 		cmd += "ifeq ($(UNAME_S),Darwin)\n"
 		cmd += "\tSOURCES = $(shell find $(SRC_PATH) -name \"*.$(SRC_EXT)\" | sort -k 1nr | cut -f2-)\n"
 		cmd += "else\n"
-		cmd += "\tSOURCES = $(shell find $(SRC_PATH) -name \"*.$(SRC_EXT)\" -printf \"%%T@\t%%p\\n\" \\ \n\t\t\t | sort -k 1nr | cut -f2-)\n"
+		cmd += "\tSOURCES = $(shell find $(SRC_PATH) -name \"*.$(SRC_EXT)\" -printf \"%%T@\\\\t%%p\\\\n\" | sort -k 1nr | cut -f2-)\n"
 		cmd += "endif\n"
 		cmd += "# fallback in case the above fails\n"
 		cmd += "rwildcard = $(foreach d, $(wildcard $1*), $(call rwildcard,$d/,$2) \\\n"
@@ -87,7 +107,7 @@ function createCMakeFile(compiler, execName, filePath, dest="/"){
 		cmd += "\tEND_TIME = read st < $(TIME_FILE) ; \\\n"
 		cmd += "\t$(RM) $(TIME_FILE) ; \\ \n"
 		cmd += "\tst=$$((`$(CUR_TIME)` - $$st)) ; \\\n"
-		cmd += "echo $$st\n"
+		cmd += "\techo $$st\n"
 		cmd += "else\n"
 		cmd += "\tTIME_FILE = $(dir $@).$(notdir $@)_time\n"
 		cmd += "\tSTART_TIME = date \"+%%s\" > $(TIME_FILE)\n"
@@ -101,16 +121,23 @@ function createCMakeFile(compiler, execName, filePath, dest="/"){
 		cmd += "# If this is not a git repo or the repo has no tags, git describe will return non-zero\n"
 		cmd += "ifeq ($(shell git describe > /dev/null 2>&1 ; echo $$?), 0)\n"
 		cmd += "\tUSE_VERSION := true\n"
-		cmd += "VERSION := $(shell git describe --tags --long --dirty --always | \\ \n"
+		cmd += "\tVERSION := $(shell git describe --tags --long --dirty --always | \\ \n"
 		cmd += "\t\tsed \"s/v\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)-\?.*-\([0-9]*\)-\(.*\)/\\1 \\2 \\3 \\4 \\5/g\")\n"
 		cmd += "\tVERSION_MAJOR := $(word 1, $(VERSION))\n"
 		cmd += "\tVERSION_MINOR := $(word 2, $(VERSION))\n"
 		cmd += "\tVERSION_PATCH := $(word 3, $(VERSION))\n"
 		cmd += "\tVERSION_REVISION := $(word 4, $(VERSION))\n"
 		cmd += "\tVERSION_HASH := $(word 5, $(VERSION))\n"
-		cmd += "VERSION_STRING := \\ \n"
-		cmd += "\t\t\"$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH).$(VERSION_REVISION)-$(VERSION_HASH)\" \n"
-		cmd += "\toverride CFLAGS := $(CFLAGS) \\\n"
+		cmd += "\tVERSION_STRING := \\ \n"
+		cmd += "\t\t\"$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH).$(VERSION_REVISION)-$(VERSION_HASH)\"\n"
+		
+		if(compiler === "gcc"){
+			cmd += "\toverride CFLAGS := $(CFLAGS) \\\n"
+		}
+		else if(compiler === "g++"){
+			cmd += "\toverride CXXFLAGS := $(CXXFLAGS) \\\n"
+		}
+
 		cmd += "\t\t\-D VERSION_MAJOR=$(VERSION_MAJOR) \\\n"
 		cmd += "\t\t\-D VERSION_MINOR=$(VERSION_MINOR) \\\n"
 		cmd += "\t\t\-D VERSION_PATCH=$(VERSION_PATCH) \\\n"
@@ -125,17 +152,17 @@ function createCMakeFile(compiler, execName, filePath, dest="/"){
 		cmd += "else\n"
 		cmd += "\t@echo \"Beginning release build\"\n"
 		cmd += "endif\n"
-		cmd += "@$(START_TIME)\n"
-		cmd += "@$(MAKE) all --no-print-directory\n"
-		cmd += "@echo -n \"Total build time: \"\n"
-		cmd += "@$(END_TIME)\n\n"
+		cmd += "\t@$(START_TIME)\n"
+		cmd += "\t@$(MAKE) all --no-print-directory\n"
+		cmd += "\t@echo -n \"Total build time: \"\n"
+		cmd += "\t@$(END_TIME)\n\n"
 		cmd += "# Debug build for gdb debugging\n"
 		cmd += ".PHONY: debug\n"
 		cmd += "debug: dirs\n"
 		cmd += "ifeq ($(USE_VERSION), true)\n"
 		cmd += "\t@echo \"Beginning debug build v$(VERSION_STRING)\"\n"
 		cmd += "else\n"
-		cmd += "@echo \"Beginning debug build\"\n"
+		cmd += "\t@echo \"Beginning debug build\"\n"
 		cmd += "endif\n"
 		cmd += "\t@$(START_TIME)\n"
 		cmd += "\t@$(MAKE) all --no-print-directory\n"
@@ -174,7 +201,12 @@ function createCMakeFile(compiler, execName, filePath, dest="/"){
 		cmd += "$(BIN_PATH)/$(BIN_NAME): $(OBJECTS)\n"
 		cmd += "\t@echo \"Linking: $@\"\n"
 		cmd += "\t@$(START_TIME)\n"
-		cmd += "\t$(CMD_PREFIX)$(CC) $(OBJECTS) $(LDFLAGS) -o $@\n"
+
+		if(compiler === "gcc")
+			cmd += "\t$(CMD_PREFIX)$(CC) $(OBJECTS) $(LDFLAGS) -o $@\n"
+		else if(compiler === "g++")
+			cmd += "\t$(CMD_PREFIX)$(CXX) $(OBJECTS) $(LDFLAGS) -o $@\n"
+
 		cmd += "\t@echo -en \"\t Link time: \"\n"
 		cmd += "\t@$(END_TIME)\n\n"
 		cmd += "# Add dependency files, if they exist\n"
@@ -185,12 +217,18 @@ function createCMakeFile(compiler, execName, filePath, dest="/"){
 		cmd += "$(BUILD_PATH)/%%.o: $(SRC_PATH)/%%.$(SRC_EXT)\n"
 		cmd += "\t@echo \"Compiling: $< -> $@\"\n"
 		cmd += "\t@$(START_TIME)\n"
-		cmd += "\t$(CMD_PREFIX)$(CC) $(CFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@\n"
-		cmd += "\t@echo -en \"\t Compile time: \"\n"
-		cmd += "\t@$(END_TIME)\n"
 		
+		if(compiler === "gcc")
+			cmd += "\t$(CMD_PREFIX)$(CC) $(CFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@\n"
+
+		else if(compiler === "g++")
+			cmd += "\t$(CMD_PREFIX)$(CXX) $(CXXFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@\n"
+
+		cmd += "\t@echo -en \"\t Compile time: \"\n"
+		cmd += "\t@$(END_TIME)"
 		cmd += "' > makefile"
 	console.log(cmd);
 	shell.exec(cmd);
 	return;
 }
+ 
