@@ -4,7 +4,7 @@ function createMakeFile(compiler, execName, filePath, dest="/"){
 	let cmd = "printf '";
 		cmd += "#### MAKEFILE FOR " + execName.toUpperCase() + "####\n"
 		cmd += "# The name of the executable to be created\n"
-		cmd += "### Thanks to https://github.com/mbcrawfo/GenericMakefile/blob/master/c/Makefile ###\n"
+		cmd += "### Thanks to https://github.com/mbcrawfo/GenericMakefile ###\n"
 		cmd += "### Project Settings ###\n"
 		cmd += "BIN_NAME := " + execName + "\n"
 		cmd += "# Compiler used\n"
@@ -227,8 +227,10 @@ function createMakeFile(compiler, execName, filePath, dest="/"){
 		cmd += "\t@echo -en \"\t Compile time: \"\n"
 		cmd += "\t@$(END_TIME)"
 		cmd += "' > makefile"
+	
 	console.log(cmd);
 	shell.exec(cmd);
+	
 	return;
 }
  

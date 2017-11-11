@@ -1,5 +1,11 @@
-#compiled files
+# compialton files
 *.out
+makefile
 
-#Modules
+# Modules
 node_modules
+
+# compilation folders
+bin
+build
+.release_time

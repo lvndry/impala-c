@@ -1,7 +1,10 @@
-/home/lvndry/Github/impala/_tests/cpp/main.cpp: In function ‘int main(int, const char**)’:
-/home/lvndry/Github/impala/_tests/cpp/main.cpp:5:14: warning: unused parameter ‘argc’ [-Wunused-parameter]
- int main(int argc, char const *argv[]) {
+/home/lvndry/Github/impala/_tests/main.cpp: In function ‘int main(int, const char**)’:
+/home/lvndry/Github/impala/_tests/main.cpp:3:14: warning: unused parameter ‘argc’ [-Wunused-parameter]
+ int main(int argc, char const *argv[])
               ^~~~
-/home/lvndry/Github/impala/_tests/cpp/main.cpp:5:37: warning: unused parameter ‘argv’ [-Wunused-parameter]
- int main(int argc, char const *argv[]) {
+/home/lvndry/Github/impala/_tests/main.cpp:3:37: warning: unused parameter ‘argv’ [-Wunused-parameter]
+ int main(int argc, char const *argv[])
                                      ^
+rm: cannot remove '_tests': Is a directory
+make[1]: *** [makefile:187: all] Error 1
+make: *** [makefile:138: release] Error 2

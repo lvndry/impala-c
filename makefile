@@ -1,14 +1,14 @@
-#### MAKEFILE FOR CPP####
+#### MAKEFILE FOR _TESTS####
 # The name of the executable to be created
-### Thanks to https://github.com/mbcrawfo/GenericMakefile/blob/master/c/Makefile ###
+### Thanks to https://github.com/mbcrawfo/GenericMakefile ###
 ### Project Settings ###
-BIN_NAME := cpp
+BIN_NAME := _tests
 # Compiler used
 CCXX ?= g++
 # Extension of source files used in the project
 SRC_EXT = cpp
 # Path to the source directory, relative to the makefile
-SRC_PATH = /home/lvndry/Github/impala/_tests/cpp
+SRC_PATH = /home/lvndry/Github/impala/_tests
 # Space-separated pkg-config libraries used by this project
 LIBS =
 # General compiler flags
