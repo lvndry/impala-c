@@ -1,6 +1,6 @@
 require('../config.js');
 
-function createMakeFile(compiler, execName, filePath, dest="/"){
+function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 	let cmd = "printf '";
 		cmd += "#### MAKEFILE FOR " + execName.toUpperCase() + "####\n"
 		cmd += "# The name of the executable to be created\n"
@@ -231,6 +231,10 @@ function createMakeFile(compiler, execName, filePath, dest="/"){
 	console.log(cmd);
 	shell.exec(cmd);
 	
+	console.log(typeof callback);
+	if(typeof callback === 'function')
+		callback();
+
 	return;
 }
  

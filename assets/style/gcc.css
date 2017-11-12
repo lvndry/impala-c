@@ -1,18 +1,8 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body{
 	margin: 0;
 	padding: 0;
-	background-color: #d1b185
-}
-
-#of{
-	display: flex;
-}
-
-input{
-	display: inline-block;
-	margin: 5% 5%
-}
-
-input[type="text"]{
-	float: right;
 }
