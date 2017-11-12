@@ -34,6 +34,11 @@ ipc.on('compile:language', function(state, lang){
   }));
 });
 
+ipc.on('goto:menu', function(state, dest){
+  console.log(state)
+  mainWindow.loadURL(`file://${__dirname}/index.html`)
+});
+
 app.on('ready', createWindow)
 
 app.on('window-all-closed', function() {

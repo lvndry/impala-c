@@ -2,33 +2,53 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Impala</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
+    <link rel="stylesheet" type="text/css" href="assets/style/index.css">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>if (typeof module === 'object'){window.module = module; module = undefined;}</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>if (window.module) module = window.module;</script>
+
   </head>
   <body>
-    <h1>Impala</h1>
-
-    <form class="cl">
-      <select id="selectl" class="l" name="language">
-        <option value="C">C</option>
-        <option value="Cpp">C++</option>
-      </select>
-      <button type="submit" name="choosedl">Submit</button>
-    </form>
-    <script type="text/javascript">
-
-      var select = document.getElementById('selectl');
-
-      var submit = document.querySelector('button');
-      const electron = require('electron');
-      const ipc = electron.ipcRenderer;
-
-      submit.addEventListener('click', function(e){
-        e.preventDefault();
-        var language = select.options[select.selectedIndex].value;
-        console.log(language);
-        ipc.send('compile:language', language);
-      });
+    <section class="hero">
+      <div class="hero-body">
+        <div class="container field has-text-centered">
+          <div class="top">
+            <h1 class="title is-1">Impala</h1>
+            <h1 class="subltitle is-1">Choose a language</h1>
+          </div>
+          <div class="cl control field has-text-centered">
+            <div class="select is-medium">
+              <select id="selectl" class="l" name="language">
+                <option value="C">C</option>
+                <option value="Cpp">C++</option>
+              </select>
+            </div>
+            <button class="button is-medium" type="submit" name="choosedl">Submit</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  
+  <script type="text/javascript">
+    const electron = require('electron');
+    const ipc = electron.ipcRenderer;
+    var language;
+    var select = document.getElementById('selectl');
+    var submit = document.querySelector('button');
+    
+    submit.addEventListener('click', function(e){
+      e.preventDefault();
+      language = select.options[select.selectedIndex].value;
+      console.log(language);
+      ipc.send('compile:language', language);
+    });
     </script>
   </body>
 </html>

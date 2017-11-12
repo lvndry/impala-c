@@ -1,14 +1,28 @@
 {
   "name": "impala",
-  "version": "0.0.1",
-  "description": "Fast cross compilation tool",
+  "version": "0.1.0",
+  "description": "Fast cross-compilation tool with electron",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lvndry/Impala.git"
+  },
   "scripts": {
     "start": "electron ."
   },
+  "keywords": [
+    "cross-compilation",
+    "compilation",
+    "electron",
+    "impala"
+  ],
   "author": "LVNDRY",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lvndry/Impala/issues"
+  },
   "dependencies": {
+    "bulma": "^0.6.1",
     "exec-sh": "^0.2.1",
     "gcc": "^1.0.2",
     "shelljs": "^0.7.8"

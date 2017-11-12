@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <title>C Compilation</title>
 
-    <link rel=stylesheet href="../assets/style/gcc.css">
+  <!--  <link rel=stylesheet href="../assets/style/gcc.css"> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
 
     <script type="text/javascript" src="../compilation/c_cpp.js"></script>
     <script type="text/javascript" src="../config.js"> </script>
@@ -15,6 +16,10 @@
   <body>
     <h1>C compilation</h1>
 
+    <div id="bm">
+      <a href="#"> ← Back </a>
+    </div>
+
     <div class="">
       <input class="f2c" id="f2c" type="file" name="file2compile">
       <input class="fold2c" id="fold2c" type="file" name="folder2compile" multiple />
@@ -24,15 +29,15 @@
 
     <div class="">
 
-      <form id="of" class="cop" action="index.html">
+   <!--   <form id="of" class="cop" action="index.html">
         <h4>Output Format</h4>
         <input type="radio" name="ot" value="-S"> <input id="dots" type="text" name="" value="" placeholder="a .s file">
         <input type="radio" name="ot" value="-c"> <input id="doto" type="text" name="" value="" placeholder="a .o file">
         <input type="radio" name="ot" value="-o"> <input id="dotout" type="text" name="" value="" placeholder="a .out file">
-      </form>
+      </form> 
 
       <form id="w" class="cop" action="index.html">
-        <h4>Warnings</h4>
+        <h4>Warnings</h4> -->
       </form>
       <div class="errros" id="gcc_errors">
         <h4>Errors</h4>
@@ -43,6 +48,10 @@
     </div>
 
     <script type="text/javascript">
+      
+      const electron = require('electron');
+      const ipc = electron.ipcRenderer;
+
       let cmd;
       let filename;
       let filePath = [], fileNames = [];
@@ -78,14 +87,17 @@
         $("#dotout").attr('placeholder', 'By default: ' + name + '.out');
       }
 
+      $("#bm").on('click', function(e){
+        e.preventDefault();
+        ipc.send('goto:menu', 'index');
+      });
+
       $("#f2c").change(function(){
           fileNames = []; filePath = [];
 
           filePath.push(input_file.files[0].path.split('/').slice(0, -1).join('/'));
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
           
-          console.log('typeof: ' + typeof(filename))
-
           createMakeFile("gcc", filename, filePath)
           setPlaceholers(filename);
           
@@ -102,6 +114,7 @@
           for(let i = 0, len = files.files.length; i < len; i++){
             filename = (files.files[i].path.split('/').slice(-2)[1].split('.')[0]);
             fileNames.push(filename);
+
             console.log("filename: " + fileNames[i]);
           }
 
@@ -114,7 +127,6 @@
           console.log(input_folder.files[0].path);
           console.log("filePath: " + filePath[0]);
           console.log('ProjectName: ' + projectName);
-
       });
 
       submit.click(function(e){

@@ -1,11 +1,20 @@
 # compialton files
+*.exe
 *.out
+*.app
 makefile
 
-# Modules
+# dependency directory
 node_modules
+package-lock.json
 
 # compilation folders
 bin
 build
 .release_time
+
+# logs 
+logs
+
+# tests
+_tests
