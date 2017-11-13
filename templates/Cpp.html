@@ -4,51 +4,90 @@
     <meta charset="utf-8">
     <title>C++ Compilation</title>
 
-    <script type="text/javascript" src="../compilation/c_cpp.js"> </script>
+    <link rel=stylesheet href="../assets/style/gcc.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
+
+    <script type="text/javascript" src="../compilation/c_cpp.js"></script>
     <script type="text/javascript" src="../config.js"> </script>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>if (window.module) module = window.module;</script>
-
   </head>
   <body>
-    <h1>C++ compilation</h1>
+    <section class="section"> 
+      
+      <nav class="level">
+         <div class="level-left">
+         <div class="level-item" id="bm">
+          <a href="#"> ← Back </a>
+        </div>
+        </div>
+        <div class="level-item has-text-center">
+          <h1 class="title">C++ compilation</h1>
+        </div>
+      </nav>
 
-    <div class="">
-      <input class="f2c" id="f2c" type="file" name="file2compile">
-      <input class="fold2c" id="fold2c" type="file" name="folder2compile" multiple />
-
-      <button id="cb" type="button" name="button">Compile</button>
-    </div>
-
-    <div class="">
-
-      <form id="of" class="cop" action="index.html">
-        <h4>Output Format</h4>
-        <input type="radio" name="ot" value="-S"> <input id="dots" type="text" name="" value="" placeholder="a .s file">
-        <input type="radio" name="ot" value="-c"> <input id="doto" type="text" name="" value="" placeholder="a .o file">
-        <input type="radio" name="ot" value="-o"> <input id="dotout" type="text" name="" value="" placeholder="a .out file">
-      </form>
-
-      <form id="w" class="cop" action="index.html">
-        <h4>Warnings</h4>
-      </form>
-      <div class="errros" id="g++_errors">
-        <h4>Errors</h4>
+      <div class="box">
+        <div class="container">
+          <div class="level">
+            <div class="file has-name level-item">
+              <label class="file-label">
+                <input class="file-input" id="f2c" type="file" name="file2compile">
+                <span class="file-cta">
+                  <span class="file-icon">
+                    <i class="fa fa-upload"></i>
+                  </span>
+                  <span class="file-label">
+                    Choose a file…
+                  </span>
+                </span>
+                <input class="file-name" id="pn" placeholder="Project Name...">
+              </label>
+            </div>
+            <!--<input class="fold2c level-item file" id="fold2c" type="file" name="folder2compile" multiple />-->
+            <div class="makefile level-item"> 
+              <label>
+                <input id="gm" type="checkbox" name="gm" checked>
+                <span>Generate a Makefile</span>
+              </label>
+            </div>
+            <button class="button" id="cb" type="button" name="button">Compile</button>
+          </div>
+        </div>
       </div>
-      <div id="cpp_errors_content" style="color:red">
 
+      <div class="info hero">
+        <div class="hero-body">
+          <div class="pathname">
+            
+          </div>
+        </div>
       </div>
-    </div>
-
+      <div class="hero is-danger is-large has-text-left">
+        <div class="hero-body">
+          <div class="errors container" id="cpp_errors">
+            <h4 class="title is-1">Errors</h4>
+          </div>
+          <div id="cpp_errors_content" style="color:red">
+          </div>
+       </div>
+      </div>
+    </section>
     <script type="text/javascript">
+      
+      const electron = require('electron');
+      const ipc = electron.ipcRenderer;
+
       let cmd;
       let filename;
       let filePath = [], fileNames = [];
+      let fullPath;
       let gcc;
-      let input_file = document.getElementById('f2c');
-      let input_folder = document.getElementById('fold2c');
+      let input_file = document.getElementById("f2c");
+      let input_folder = document.getElementById("fold2c");
       let projectName;
+      let pwd = shell.exec("pwd");
+          pwd = pwd.slice(0, -1);
       let submit = $("#cb");
       
       function printErrors(file){
@@ -58,10 +97,11 @@
         rawFile.onreadystatechange = function (){
           if(rawFile.readyState === 4){
             if(rawFile.status === 200 || rawFile.status == 0){
-              let allText = "<p>";
+              let allText = '<p class="subtitle">';
                   allText += rawFile.responseText;
-                  allText = allText.replace(/[\n\r]/g, '</p><p>'); //replace all \n or \r by <p></p>
+                  allText = allText.replace(/[\n\r]/g, '</p><p class="subtitle">'); //replace all \n or \r by <p></p>
               $("#cpp_errors_content").append(allText);
+
             }
           }
         }
@@ -74,16 +114,34 @@
         $("#dotout").attr('placeholder', 'By default: ' + name + '.out');
       }
 
+      $("#bm").on('click', function(e){
+        e.preventDefault();
+        ipc.send('goto:menu', 'index');
+      });
+
       $("#f2c").change(function(){
-          filePath = []; 
+          fileNames = []; filePath = [];
+          fullPath = input_file.files[0].path;
           filePath.push(input_file.files[0].path.split('/').slice(0, -1).join('/'));
-          filename = "" + filePath[0].split('/').slice(-1)[0]; //Get the name of the file without the extension
+          filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
           
+          $(".file-name").attr('placeholder', 'By default: ' + filename);
+          $(".pathname").html("<span class=''>Path: " + fullPath + "</span>");
+
+          setPlaceholers(filename);
+
+          //createMakeFile("gcc", filename, filePath)
+          console.log(fullPath);
           console.log(filePath[0]);
           console.log('filename: ' + filename);
-          
-          createMakeFile("g++", filename, filePath)
-          setPlaceholers(filename)
+      });
+
+      $("#pn").change(function(){
+          if($("#pn").val().length !== 0){
+            filename = $("#pn").val();
+            console.log(filename);
+          }
+          else filename = filePath[0].split('/').slice(-1)[0].split('.')[0];
       });
 
       $("#fold2c").change(function(event) {
@@ -93,14 +151,15 @@
           filePath.push(files.files[0].path.split('/').slice(0, -1).join('/'));
           
           for(let i = 0, len = files.files.length; i < len; i++){
-            filename = (files.files[i].path.split('/').slice(-2)[1].split('.')[0]);
-            fileNames.push(filename);
+            fileNames.push(files.files[i].path.split('/').slice(-1)[0].split('.')[0]);
             console.log("filename: " + fileNames[i]);
           }
 
           projectName = filePath[0].split('/').slice(-1).join('/');
-         
-          createMakeFile("g++", projectName, filePath)
+          
+          if($("#gm:checkbox:checked").length > 0)
+            createMakeFile("gcc", projectName, filePath)
+          
           setPlaceholers(filename);
 
           console.log(input_folder.files);
@@ -110,10 +169,15 @@
       });
 
       submit.click(function(e){
-          gcc = "make 2> logs/cpp_errors.log && make clean"
-          console.log(gcc);
-          shell.exec(gcc);
-          printErrors('file://' + __dirname + '/../logs/cpp_errors.log')
+        gcc = "make 2> logs/gcc_erros.log"
+        
+        if($("#gm:checkbox:checked").length > 0){
+          createMakeFile("g++", filename, filePath, function(){shell.exec(gcc)});
+        }
+        else shell.exec(gcc); 
+
+        console.log(gcc);
+        printErrors('file://' + __dirname + '/../logs/cpp_erros.log')
       });
     </script>
   </body>
