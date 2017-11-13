@@ -36,19 +36,19 @@
       </div>
     </section>
   
-  <script type="text/javascript">
-    const electron = require('electron');
-    const ipc = electron.ipcRenderer;
-    var language;
-    var select = document.getElementById('selectl');
-    var submit = document.querySelector('button');
+    <script type="text/javascript">
+      const electron = require('electron');
+      const ipc = electron.ipcRenderer;
+      var language;
+      var select = document.getElementById('selectl');
+      var submit = document.querySelector('button');
     
-    submit.addEventListener('click', function(e){
-      e.preventDefault();
-      language = select.options[select.selectedIndex].value;
-      console.log(language);
-      ipc.send('compile:language', language);
-    });
+      submit.addEventListener('click', function(e){
+        e.preventDefault();
+        language = select.options[select.selectedIndex].value;
+        console.log(language);
+        ipc.send('compile:language', language);
+      });
     </script>
   </body>
 </html>

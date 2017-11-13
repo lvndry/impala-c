@@ -37,14 +37,33 @@
                   <span class="file-icon">
                     <i class="fa fa-upload"></i>
                   </span>
-                  <span class="file-label">
+                  <span class="file-label has-text-centered">
                     Choose a file…
                   </span>
                 </span>
                 <input class="file-name" id="pn" placeholder="Project Name...">
               </label>
             </div>
-            <!--<input class="fold2c level-item file" id="fold2c" type="file" name="folder2compile" multiple />-->
+
+            <div class="to level-item">
+              <div class="select">
+                <select name="os">
+                  <option value="win">Windows</option>
+                  <option value="mac">MAC OS X</option>
+                  <option value="lin">Linux</option>
+                </select>
+              </div>  
+            </div>
+
+            <div class="ta">
+              <div class="select level-item">
+                <select name="arch">
+                  <option value="32">x86_x32</option>
+                  <option value="64">x86_x64</option>
+                </select>
+              </div>
+            </div>
+
             <div class="makefile level-item"> 
               <label>
                 <input id="gm" type="checkbox" name="gm" checked>
@@ -56,20 +75,18 @@
         </div>
       </div>
 
-      <div class="info hero">
-        <div class="hero-body">
-          <div class="pathname">
+      <div class="info box">
+          <div class="content path">
             
           </div>
         </div>
       </div>
       <div class="hero is-danger is-large has-text-left">
         <div class="hero-body">
-          <div class="errros container" id="gcc_errors">
+          <div class="errors container" id="gcc_errors">
             <h4 class="title is-1">Errors</h4>
           </div>
-          <div id="gcc_errors_content" style="color:red">
-          </div>
+          <div id="gcc_errors_content"> </div>
        </div>
       </div>
     </section>
@@ -91,7 +108,6 @@
       let submit = $("#cb");
       
       function printErrors(file){
-        let errorrender = $("#gcc_erros");
         let rawFile = new XMLHttpRequest();
         rawFile.open("GET", file, false);
         rawFile.onreadystatechange = function (){
@@ -100,7 +116,7 @@
               let allText = '<p class="subtitle">';
                   allText += rawFile.responseText;
                   allText = allText.replace(/[\n\r]/g, '</p><p class="subtitle">'); //replace all \n or \r by <p></p>
-              $("#gcc_errors_content").append(allText);
+              $("#gcc_errors_content").html(allText);
 
             }
           }
@@ -126,11 +142,12 @@
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
           
           $(".file-name").attr('placeholder', 'By default: ' + filename);
-          $(".pathname").html("<span class=''>Path: " + fullPath + "</span>");
+          $(".path").html("<span class=''>Path: " + fullPath + "</span>");
 
           setPlaceholers(filename);
+          
+          readImpignore();
 
-          //createMakeFile("gcc", filename, filePath)
           console.log(fullPath);
           console.log(filePath[0]);
           console.log('filename: ' + filename);
@@ -169,13 +186,18 @@
       submit.click(function(e){
         gcc = "make 2> logs/gcc_erros.log"
         
-        if($("#gm:checkbox:checked").length > 0){
-          createMakeFile("gcc", filename, filePath, function(){shell.exec(gcc)});
+        if($("#f2c").val().length === 0){
+          $("#gcc_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
         }
-        else shell.exec(gcc); 
-
+        else if($("#gm:checkbox:checked").length > 0){
+          createMakeFile("gcc", filename, filePath, function(){shell.exec(gcc)});
+          printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
+        }
+        else{ 
+          shell.exec(gcc);
+          printErrors('file://' + __dirname + '/../logs/gcc_erros.log') 
+        }
         console.log(gcc);
-        printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
       });
     </script>
   </body>

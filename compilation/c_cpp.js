@@ -1,8 +1,10 @@
 require('../config.js');
+let fs = require('fs')
+let excludedFiles = [];
 
 function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 	let cmd = "printf '";
-		cmd += "#### MAKEFILE FOR " + execName.toUpperCase() + "####\n"
+		cmd += "#### MAKEFILE FOR " + execName.toUpperCase() + " ####\n"
 		cmd += "# The name of the executable to be created\n"
 		cmd += "### Thanks to https://github.com/mbcrawfo/GenericMakefile ###\n"
 		cmd += "### Project Settings ###\n"
@@ -20,6 +22,13 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 			cmd += "# Extension of source files used in the project\n"
 			cmd += "SRC_EXT = cpp\n" 
 		}
+		
+		cmd += "#Files not to compile\n"
+		cmd += "EXCLUDED= "
+		for(let i = 0, len = excludedFiles.length; i < len; i++){
+			cmd += excludedFiles[i] + " ";
+		}
+		cmd += "\n";
 
 		cmd += "# Path to the source directory, relative to the makefile\n"
 		cmd += "SRC_PATH = " + filePath + "\n"
@@ -88,6 +97,8 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		cmd += "else\n"
 		cmd += "\tSOURCES = $(shell find $(SRC_PATH) -name \"*.$(SRC_EXT)\" -printf \"%%T@\\\\t%%p\\\\n\" | sort -k 1nr | cut -f2-)\n"
 		cmd += "endif\n"
+		cmd += "#Extraction of files in .impignore"
+		cmd += "SOURCES := $(filter-out $(EXCLUDED), $(SOURCES))\n";
 		cmd += "# fallback in case the above fails\n"
 		cmd += "rwildcard = $(foreach d, $(wildcard $1*), $(call rwildcard,$d/,$2) \\\n"
 		cmd += "\t\t\t$(filter $(subst *,%%,$2), $d))\n"
@@ -237,4 +248,15 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 
 	return;
 }
- 
+
+function readImpignore(){
+	fs.readFile('.impignore', 'utf8', function (err,data) {
+  		if (err) {
+    		return console.log('err: ' + err);
+  		}
+  		excludedFiles = data.split('\n');
+  		console.log(excludedFiles)
+  		console.log(typeof data)
+  		console.log(data);
+	});
+}
