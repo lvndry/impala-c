@@ -6,9 +6,9 @@
 
     <link rel=stylesheet href="../assets/style/gcc.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
-
-    <script type="text/javascript" src="../compilation/c_cpp.js"></script>
-    <script type="text/javascript" src="../config.js"> </script>
+    <script type="text/javascript" src="../script/impignore.js"></script>
+    <script type="text/javascript" src="../script/makefile.js"></script>
+    <script type="text/javascript" src="../config/config.js"> </script>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>if (window.module) module = window.module;</script>
@@ -38,10 +38,25 @@
                     <i class="fa fa-upload"></i>
                   </span>
                   <span class="file-label has-text-centered">
-                    Choose a file…
+                    Select the main file…
                   </span>
                 </span>
                 <input class="file-name" id="pn" placeholder="Project Name...">
+              </label>
+            </div>
+
+            <div class="file has-name level-item">
+              <label class="file-label">
+                <input class="file-input" id="f2c" type="file" name="file2compile">
+                <span class="file-cta">
+                  <span class="file-icon">
+                    <i class="fa fa-upload"></i>
+                  </span>
+                  <span class="file-label has-text-centered">
+                    Select dependencies…
+                  </span>
+                </span>
+                <input class="file-name" id="dp" placeholder="Project Name...">
               </label>
             </div>
 
@@ -96,38 +111,30 @@
       const ipc = electron.ipcRenderer;
 
       let cmd;
-      let filename;
-      let filePath = [], fileNames = [];
+      let errs;
+      let fileName;
+      let filePath;
       let fullPath;
       let gcc;
       let input_file = document.getElementById("f2c");
       let input_folder = document.getElementById("fold2c");
       let projectName;
-      let pwd = shell.exec("pwd");
-          pwd = pwd.slice(0, -1);
       let submit = $("#cb");
       
       function printErrors(file){
-        let rawFile = new XMLHttpRequest();
-        rawFile.open("GET", file, false);
-        rawFile.onreadystatechange = function (){
-          if(rawFile.readyState === 4){
-            if(rawFile.status === 200 || rawFile.status == 0){
-              let allText = '<p class="subtitle">';
-                  allText += rawFile.responseText;
-                  allText = allText.replace(/[\n\r]/g, '</p><p class="subtitle">'); //replace all \n or \r by <p></p>
-              $("#gcc_errors_content").html(allText);
-
-            }
+        errs = '<p class="subtitle">'
+        console.log(file);
+        fs.readFile(file, 'utf8', function (err, data) {
+          if (err) {
+            return console.log('err: ' + err);
           }
-        }
-        rawFile.send(null);
-      }
-
-      function setPlaceholers(name){
-        $("#dots").attr('placeholder', 'By default: ' + name + '.s');
-        $("#doto").attr('placeholder', 'By default: ' + name + '.o');
-        $("#dotout").attr('placeholder', 'By default: ' + name + '.out');
+          errs = data.split('\n');
+          for(let i = 0, len = errs.length; i < len; i++){
+            errs[i] += '</p><pclass="subtitle">'
+          }
+          errs.join('\n');
+          $("#gcc_errors_content").html(errs);
+        });
       }
 
       $("#bm").on('click', function(e){
@@ -136,68 +143,44 @@
       });
 
       $("#f2c").change(function(){
-          fileNames = []; filePath = [];
+          fileNames = []; filePath;
           fullPath = input_file.files[0].path;
-          filePath.push(input_file.files[0].path.split('/').slice(0, -1).join('/'));
-          filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
+          filePath = input_file.files[0].path.split('/').slice(0, -1).join('/');
+          fileName = filePath.split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
           
-          $(".file-name").attr('placeholder', 'By default: ' + filename);
+          $(".file-name").attr('placeholder', 'By default: ' + fileName);
           $(".path").html("<span class=''>Path: " + fullPath + "</span>");
-
-          setPlaceholers(filename);
           
-          readImpignore();
-
           console.log(fullPath);
-          console.log(filePath[0]);
-          console.log('filename: ' + filename);
+          console.log(filePath);
+          console.log('fileName: ' + fileName);
       });
 
       $("#pn").change(function(){
           if($("#pn").val().length !== 0){
-            filename = $("#pn").val();
-            console.log(filename);
+            fileName = $("#pn").val();
+            console.log(fileName);
           }
-          else filename = filePath[0].split('/').slice(-1)[0].split('.')[0];
-      });
-
-      $("#fold2c").change(function(event) {
-          fileNames = []; filePath = [];
-          var files = input_folder;
-          
-          filePath.push(files.files[0].path.split('/').slice(0, -1).join('/'));
-          
-          for(let i = 0, len = files.files.length; i < len; i++){
-            fileNames.push(files.files[i].path.split('/').slice(-1)[0].split('.')[0]);
-            console.log("filename: " + fileNames[i]);
-          }
-
-          projectName = filePath[0].split('/').slice(-1).join('/');
-          if($("#gm:checkbox:checked").length > 0)
-            createMakeFile("gcc", projectName, filePath)
-          setPlaceholers(filename);
-
-          console.log(input_folder.files);
-          console.log(input_folder.files[0].path);
-          console.log("filePath: " + filePath[0]);
-          console.log('ProjectName: ' + projectName);
+          else fileName = filePath.split('/').slice(-1)[0].split('.')[0];
       });
 
       submit.click(function(e){
-        gcc = "make 2> logs/gcc_erros.log"
+        gcc = "make 2> ./logs/gcc_errors.log"
         
         if($("#f2c").val().length === 0){
           $("#gcc_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
         }
         else if($("#gm:checkbox:checked").length > 0){
-          createMakeFile("gcc", filename, filePath, function(){shell.exec(gcc)});
-          printErrors('file://' + __dirname + '/../logs/gcc_erros.log')
+          createMakeFile("gcc", fileName, filePath, function(){
+            shell.exec(gcc)
+          });
+          printErrors('logs/gcc_errors.log')
         }
         else{ 
           shell.exec(gcc);
-          printErrors('file://' + __dirname + '/../logs/gcc_erros.log') 
+          printErrors('logs/gcc_errors.log') 
         }
-        console.log(gcc);
+        //console.log(gcc);
       });
     </script>
   </body>

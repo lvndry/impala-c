@@ -1,7 +1,7 @@
 const electron = require('electron');
 const path = require('path');
 const url = require('url');
-const config = require('./config.js');
+const config = require('./config/config.js');
 
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
@@ -9,11 +9,10 @@ const ipc = electron.ipcMain;
 
 let mainWindow
 
-//Creation of the main window
 function createWindow() {
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
-  mainWindow.loadURL(`file://${__dirname}/index.html`)
+  mainWindow.loadURL(`file://${__dirname}/renderer/index.html`)
 
   mainWindow.webContents.openDevTools()
 
@@ -24,8 +23,7 @@ function createWindow() {
 
 //Load a page depending on what language is chosen
 ipc.on('compile:language', function(state, lang){
-  console.log(lang);
-  let renderer = './templates/' + lang + '.html';
+  let renderer = '/renderer/' + lang + '.html';
 
   mainWindow.loadURL(url.format({
     pathname : path.join(__dirname, renderer),
@@ -35,8 +33,7 @@ ipc.on('compile:language', function(state, lang){
 });
 
 ipc.on('goto:menu', function(state, dest){
-  console.log(state)
-  mainWindow.loadURL(`file://${__dirname}/index.html`)
+  mainWindow.loadURL(`file://${__dirname}/renderer/index.html`)
 });
 
 app.on('ready', createWindow)

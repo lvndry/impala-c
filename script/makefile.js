@@ -1,6 +1,7 @@
-require('../config.js');
-let fs = require('fs')
-let excludedFiles = [];
+require('../config/config.js');
+require('../script/impignore.js');
+
+let excludedFiles = readImpignore();
 
 function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 	let cmd = "printf '";
@@ -25,6 +26,7 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		
 		cmd += "#Files not to compile\n"
 		cmd += "EXCLUDED= "
+		
 		for(let i = 0, len = excludedFiles.length; i < len; i++){
 			cmd += excludedFiles[i] + " ";
 		}
@@ -78,6 +80,7 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 			cmd += "release: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)\n"
 			cmd += "debug: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)\n"
 		}
+		
 		else if(compiler === "g++"){
 			cmd += "release: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)\n"
 			cmd += "debug: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)\n"
@@ -96,12 +99,12 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		cmd += "\tSOURCES = $(shell find $(SRC_PATH) -name \"*.$(SRC_EXT)\" | sort -k 1nr | cut -f2-)\n"
 		cmd += "else\n"
 		cmd += "\tSOURCES = $(shell find $(SRC_PATH) -name \"*.$(SRC_EXT)\" -printf \"%%T@\\\\t%%p\\\\n\" | sort -k 1nr | cut -f2-)\n"
-		cmd += "endif\n"
-		cmd += "#Extraction of files in .impignore"
-		cmd += "SOURCES := $(filter-out $(EXCLUDED), $(SOURCES))\n";
+		cmd += "endif\n\n"
+		cmd += "#Filtering files in .impignore\n"
+		cmd += "SOURCES := $(filter-out $(EXCLUDED), $(SOURCES))\n\n";
 		cmd += "# fallback in case the above fails\n"
 		cmd += "rwildcard = $(foreach d, $(wildcard $1*), $(call rwildcard,$d/,$2) \\\n"
-		cmd += "\t\t\t$(filter $(subst *,%%,$2), $d))\n"
+		cmd += "\t\t\t$(filter $(subst *,%%,$2), $d))\n\n"
 		cmd += "ifeq ($(SOURCES),)\n"
 		cmd += "\tSOURCES := $(call rwildcard, $(SRC_PATH), *.$(SRC_EXT))\n"
 		cmd += "endif\n\n"
@@ -145,6 +148,7 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		if(compiler === "gcc"){
 			cmd += "\toverride CFLAGS := $(CFLAGS) \\\n"
 		}
+		
 		else if(compiler === "g++"){
 			cmd += "\toverride CXXFLAGS := $(CXXFLAGS) \\\n"
 		}
@@ -229,34 +233,23 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		cmd += "\t@echo \"Compiling: $< -> $@\"\n"
 		cmd += "\t@$(START_TIME)\n"
 		
-		if(compiler === "gcc")
+		if(compiler === "gcc"){
 			cmd += "\t$(CMD_PREFIX)$(CC) $(CFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@\n"
+		}
 
-		else if(compiler === "g++")
+		else if(compiler === "g++"){
 			cmd += "\t$(CMD_PREFIX)$(CXX) $(CXXFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@\n"
+		}
 
 		cmd += "\t@echo -en \"\t Compile time: \"\n"
 		cmd += "\t@$(END_TIME)"
 		cmd += "' > makefile"
 	
-	console.log(cmd);
+	//console.log(cmd);
 	shell.exec(cmd);
 	
-	console.log(typeof callback);
-	if(typeof callback === 'function')
+	//console.log(typeof callback);
+	if(typeof callback === 'function'){
 		callback();
-
-	return;
-}
-
-function readImpignore(){
-	fs.readFile('.impignore', 'utf8', function (err,data) {
-  		if (err) {
-    		return console.log('err: ' + err);
-  		}
-  		excludedFiles = data.split('\n');
-  		console.log(excludedFiles)
-  		console.log(typeof data)
-  		console.log(data);
-	});
+	}
 }

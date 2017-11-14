@@ -1,25 +1,23 @@
 {
   "name": "impala",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fast cross-compilation tool with electron",
+  "author": "LVNDRY",
   "main": "main.js",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/lvndry/Impala.git"
   },
   "scripts": {
-    "start": "electron ."
-  },
-  "keywords": [
-    "cross-compilation",
-    "compilation",
-    "electron",
-    "impala"
-  ],
-  "author": "LVNDRY",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/lvndry/Impala/issues"
+    "start": "electron main.js",
+    "pack-linux-ia32": "electron-packager . --package-manager=yarn --asar --overwrite --platform=linux --arch=ia32 --icon=assets/icons/impa_logo_64.png --prune=true --out=build",
+    "pack-linux-x64": "electron-packager . --package-manager=yarn --asar --overwrite --platform=linux --arch=x64 --icon=assets/icons/impa_logo_64.png --prune=true --out=build",
+    "pack-win32-ia32": "electron-packager . --package-manager=yarn --asar  --overwrite --platform=win32 --arch=ia32 --icon=assets/icons/impa_logo_64.ico --prune=true --out=build --version-string.ProductName='impala'",
+    "pack-win32-x64": "electron-packager . --package-manager=yarn --asar  --overwrite --platform=win32 --arch=x64 --icon=assets/icons/impa_logo_64.ico --prune=true --out=build --version-string.ProductName='impala'",
+    "pack-mac": "electron-packager . --package-manager=yarn --asar --overwrite --platform=darwin --arch=x64 --icon=assets/icons/impa_logo_64.icns --prune=true --out=build",
+    "package": "npm run pack-linux-ia32 && npm run pack-linux-x64 && npm run pack-win32-ia32 && npm run pack-win32-x64 && npm run pack-mac",
+    "release": "node ./script/release.js"
   },
   "dependencies": {
     "bulma": "^0.6.1",
@@ -30,6 +28,17 @@
   "devDependencies": {
     "devtron": "^1.4.0",
     "electron": "^1.7.9",
+    "electron-builder": "^19.45.4",
+    "electron-packager": "^8.7.2",
     "spectron": "^3.7.2"
+  },
+  "keywords": [
+    "cross-compilation",
+    "compilation",
+    "electron",
+    "impala"
+  ],
+  "bugs": {
+    "url": "https://github.com/lvndry/Impala/issues"
   }
 }

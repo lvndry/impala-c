@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
 
     <script type="text/javascript" src="../compilation/c_cpp.js"></script>
-    <script type="text/javascript" src="../config.js"> </script>
+    <script type="text/javascript" src="../config/config.js"> </script>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>if (window.module) module = window.module;</script>
@@ -75,6 +75,7 @@
     </section>
     <script type="text/javascript">
       
+          
       const electron = require('electron');
       const ipc = electron.ipcRenderer;
 
@@ -82,7 +83,7 @@
       let filename;
       let filePath = [], fileNames = [];
       let fullPath;
-      let gcc;
+      let cpp;
       let input_file = document.getElementById("f2c");
       let input_folder = document.getElementById("fold2c");
       let projectName;
@@ -91,7 +92,6 @@
       let submit = $("#cb");
       
       function printErrors(file){
-        let errorrender = $("#gcc_erros");
         let rawFile = new XMLHttpRequest();
         rawFile.open("GET", file, false);
         rawFile.onreadystatechange = function (){
@@ -100,7 +100,7 @@
               let allText = '<p class="subtitle">';
                   allText += rawFile.responseText;
                   allText = allText.replace(/[\n\r]/g, '</p><p class="subtitle">'); //replace all \n or \r by <p></p>
-              $("#cpp_errors_content").append(allText);
+              $("#cpp_errors_content").html(allText);
 
             }
           }
@@ -126,11 +126,12 @@
           filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
           
           $(".file-name").attr('placeholder', 'By default: ' + filename);
-          $(".pathname").html("<span class=''>Path: " + fullPath + "</span>");
+          $(".path").html("<span class=''>Path: " + fullPath + "</span>");
 
           setPlaceholers(filename);
+          
+          readImpignore();
 
-          //createMakeFile("gcc", filename, filePath)
           console.log(fullPath);
           console.log(filePath[0]);
           console.log('filename: ' + filename);
@@ -156,10 +157,8 @@
           }
 
           projectName = filePath[0].split('/').slice(-1).join('/');
-          
           if($("#gm:checkbox:checked").length > 0)
-            createMakeFile("gcc", projectName, filePath)
-          
+            createMakeFile("g++", projectName, filePath)
           setPlaceholers(filename);
 
           console.log(input_folder.files);
@@ -169,15 +168,20 @@
       });
 
       submit.click(function(e){
-        gcc = "make 2> logs/gcc_erros.log"
+        cpp = "make 2> logs/cpp_errors.log"
         
-        if($("#gm:checkbox:checked").length > 0){
-          createMakeFile("g++", filename, filePath, function(){shell.exec(gcc)});
+        if($("#f2c").val().length === 0){
+          $("#cpp_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
         }
-        else shell.exec(gcc); 
-
-        console.log(gcc);
-        printErrors('file://' + __dirname + '/../logs/cpp_erros.log')
+        else if($("#gm:checkbox:checked").length > 0){
+          createMakeFile("g++", filename, filePath, function(){shell.exec(cpp)});
+          printErrors('file://' + __dirname + '/../logs/cpp_errors.log')
+        }
+        else{ 
+          shell.exec(cpp);
+          printErrors('file://' + __dirname + '/../logs/cpp_errors.log') 
+        }
+        console.log(cpp);
       });
     </script>
   </body>
