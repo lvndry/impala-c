@@ -7,8 +7,9 @@
     <link rel=stylesheet href="../assets/style/gcc.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
 
-    <script type="text/javascript" src="../compilation/c_cpp.js"></script>
     <script type="text/javascript" src="../config/config.js"> </script>
+    <script type="text/javascript" src="../script/impignore.js"></script>
+    <script type="text/javascript" src="../script/makefile.js"></script>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>if (window.module) module = window.module;</script>
@@ -44,7 +45,7 @@
                 <input class="file-name" id="pn" placeholder="Project Name...">
               </label>
             </div>
-            <!--<input class="fold2c level-item file" id="fold2c" type="file" name="folder2compile" multiple />-->
+            
             <div class="makefile level-item"> 
               <label>
                 <input id="gm" type="checkbox" name="gm" checked>
@@ -76,42 +77,35 @@
     <script type="text/javascript">
       
           
+
       const electron = require('electron');
       const ipc = electron.ipcRenderer;
 
       let cmd;
-      let filename;
-      let filePath = [], fileNames = [];
+      let errs;
+      let fileName;
+      let filePath;
       let fullPath;
-      let cpp;
+      let gcc;
       let input_file = document.getElementById("f2c");
       let input_folder = document.getElementById("fold2c");
       let projectName;
-      let pwd = shell.exec("pwd");
-          pwd = pwd.slice(0, -1);
       let submit = $("#cb");
       
       function printErrors(file){
-        let rawFile = new XMLHttpRequest();
-        rawFile.open("GET", file, false);
-        rawFile.onreadystatechange = function (){
-          if(rawFile.readyState === 4){
-            if(rawFile.status === 200 || rawFile.status == 0){
-              let allText = '<p class="subtitle">';
-                  allText += rawFile.responseText;
-                  allText = allText.replace(/[\n\r]/g, '</p><p class="subtitle">'); //replace all \n or \r by <p></p>
-              $("#cpp_errors_content").html(allText);
-
-            }
+        errs = '<p class="subtitle">'
+        console.log(file);
+        fs.readFile(file, 'utf8', function (err, data) {
+          if (err) {
+            return console.log('err: ' + err);
           }
-        }
-        rawFile.send(null);
-      }
-
-      function setPlaceholers(name){
-        $("#dots").attr('placeholder', 'By default: ' + name + '.s');
-        $("#doto").attr('placeholder', 'By default: ' + name + '.o');
-        $("#dotout").attr('placeholder', 'By default: ' + name + '.out');
+          errs += data.split('\n');
+          for(let i = 0, len = errs.length; i < len; i++){
+            errs[i] += '</p><pclass="subtitle">'
+          }
+          errs.join('\n');
+          $("#cpp_errors_content").html(errs);
+        });
       }
 
       $("#bm").on('click', function(e){
@@ -120,68 +114,39 @@
       });
 
       $("#f2c").change(function(){
-          fileNames = []; filePath = [];
+          fileNames = []; filePath;
           fullPath = input_file.files[0].path;
-          filePath.push(input_file.files[0].path.split('/').slice(0, -1).join('/'));
-          filename = filePath[0].split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
+          filePath = input_file.files[0].path.split('/').slice(0, -1).join('/');
+          fileName = filePath.split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
           
-          $(".file-name").attr('placeholder', 'By default: ' + filename);
+          $(".file-name").attr('placeholder', 'Project Name: (by default: ' + fileName + ")");
           $(".path").html("<span class=''>Path: " + fullPath + "</span>");
-
-          setPlaceholers(filename);
-          
-          readImpignore();
-
-          console.log(fullPath);
-          console.log(filePath[0]);
-          console.log('filename: ' + filename);
       });
 
       $("#pn").change(function(){
           if($("#pn").val().length !== 0){
-            filename = $("#pn").val();
-            console.log(filename);
+            fileName = $("#pn").val();
+            console.log(fileName);
           }
-          else filename = filePath[0].split('/').slice(-1)[0].split('.')[0];
-      });
-
-      $("#fold2c").change(function(event) {
-          fileNames = []; filePath = [];
-          var files = input_folder;
-          
-          filePath.push(files.files[0].path.split('/').slice(0, -1).join('/'));
-          
-          for(let i = 0, len = files.files.length; i < len; i++){
-            fileNames.push(files.files[i].path.split('/').slice(-1)[0].split('.')[0]);
-            console.log("filename: " + fileNames[i]);
-          }
-
-          projectName = filePath[0].split('/').slice(-1).join('/');
-          if($("#gm:checkbox:checked").length > 0)
-            createMakeFile("g++", projectName, filePath)
-          setPlaceholers(filename);
-
-          console.log(input_folder.files);
-          console.log(input_folder.files[0].path);
-          console.log("filePath: " + filePath[0]);
-          console.log('ProjectName: ' + projectName);
+          else fileName = filePath.split('/').slice(-1)[0].split('.')[0];
       });
 
       submit.click(function(e){
-        cpp = "make 2> logs/cpp_errors.log"
+        gcc = "make 2> ./logs/cpp_errors.log"
         
         if($("#f2c").val().length === 0){
           $("#cpp_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
         }
         else if($("#gm:checkbox:checked").length > 0){
-          createMakeFile("g++", filename, filePath, function(){shell.exec(cpp)});
-          printErrors('file://' + __dirname + '/../logs/cpp_errors.log')
+          createMakeFile("gcc", fileName, filePath, function(){
+            shell.exec(gcc)
+          });
+          printErrors('logs/cpp_errors.log')
         }
         else{ 
-          shell.exec(cpp);
-          printErrors('file://' + __dirname + '/../logs/cpp_errors.log') 
+          shell.exec(gcc);
+          printErrors('logs/cpp_errors.log') 
         }
-        console.log(cpp);
       });
     </script>
   </body>

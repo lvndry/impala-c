@@ -14,7 +14,7 @@ build
 .release_time
 
 # logs 
-logs
+logs/*.log
 
 # tests
 _tests

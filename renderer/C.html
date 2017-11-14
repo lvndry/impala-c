@@ -6,12 +6,14 @@
 
     <link rel=stylesheet href="../assets/style/gcc.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
+
+    <script type="text/javascript" src="../config/config.js"> </script>
     <script type="text/javascript" src="../script/impignore.js"></script>
     <script type="text/javascript" src="../script/makefile.js"></script>
-    <script type="text/javascript" src="../config/config.js"> </script>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>if (window.module) module = window.module;</script>
+
   </head>
   <body>
     <section class="section"> 
@@ -45,21 +47,6 @@
               </label>
             </div>
 
-            <div class="file has-name level-item">
-              <label class="file-label">
-                <input class="file-input" id="f2c" type="file" name="file2compile">
-                <span class="file-cta">
-                  <span class="file-icon">
-                    <i class="fa fa-upload"></i>
-                  </span>
-                  <span class="file-label has-text-centered">
-                    Select dependencies…
-                  </span>
-                </span>
-                <input class="file-name" id="dp" placeholder="Project Name...">
-              </label>
-            </div>
-
             <div class="to level-item">
               <div class="select">
                 <select name="os">
@@ -70,8 +57,8 @@
               </div>  
             </div>
 
-            <div class="ta">
-              <div class="select level-item">
+            <div class="ta level-item">
+              <div class="select">
                 <select name="arch">
                   <option value="32">x86_x32</option>
                   <option value="64">x86_x64</option>
@@ -128,7 +115,7 @@
           if (err) {
             return console.log('err: ' + err);
           }
-          errs = data.split('\n');
+          errs += data.split('\n');
           for(let i = 0, len = errs.length; i < len; i++){
             errs[i] += '</p><pclass="subtitle">'
           }
@@ -148,12 +135,8 @@
           filePath = input_file.files[0].path.split('/').slice(0, -1).join('/');
           fileName = filePath.split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
           
-          $(".file-name").attr('placeholder', 'By default: ' + fileName);
+          $(".file-name").attr('placeholder', 'Project Name: (by default: ' + fileName + ")");
           $(".path").html("<span class=''>Path: " + fullPath + "</span>");
-          
-          console.log(fullPath);
-          console.log(filePath);
-          console.log('fileName: ' + fileName);
       });
 
       $("#pn").change(function(){
@@ -180,7 +163,6 @@
           shell.exec(gcc);
           printErrors('logs/gcc_errors.log') 
         }
-        //console.log(gcc);
       });
     </script>
   </body>
