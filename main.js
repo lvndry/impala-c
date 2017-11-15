@@ -10,11 +10,11 @@ const ipc = electron.ipcMain;
 let mainWindow
 
 function createWindow() {
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  mainWindow = new BrowserWindow({width: 800, height: 600, icon: __dirname + '/assets/icon/impa_logo_64.png'})
 
   mainWindow.loadURL(`file://${__dirname}/renderer/index.html`)
 
-  mainWindow.webContents.openDevTools()
+ //mainWindow.webContents.openDevTools()
 
   mainWindow.on('closed', function() {
     mainWindow = null

@@ -1,3 +1,5 @@
 #!/usr/bin/env node
+var main = path.join(__dirname, '../main.js');
+var shell = require('shelljs')
 
-electron ../main.js
+shell.exec('electron ' + main);

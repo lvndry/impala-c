@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
   <head>
     <meta charset="utf-8">
     <title>C Compilation</title>
@@ -13,15 +14,15 @@
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>if (window.module) module = window.module;</script>
-
   </head>
+
   <body>
     <section class="section"> 
       
       <nav class="level">
          <div class="level-left">
          <div class="level-item" id="bm">
-          <a href="#"> ← Back </a>
+          <a class="home" href="#"> ← Back </a>
         </div>
         </div>
         <div class="level-item has-text-center">
@@ -45,25 +46,6 @@
                 </span>
                 <input class="file-name" id="pn" placeholder="Project Name...">
               </label>
-            </div>
-
-            <div class="to level-item">
-              <div class="select">
-                <select name="os">
-                  <option value="win">Windows</option>
-                  <option value="mac">MAC OS X</option>
-                  <option value="lin">Linux</option>
-                </select>
-              </div>  
-            </div>
-
-            <div class="ta level-item">
-              <div class="select">
-                <select name="arch">
-                  <option value="32">x86_x32</option>
-                  <option value="64">x86_x64</option>
-                </select>
-              </div>
             </div>
 
             <div class="makefile level-item"> 
@@ -105,7 +87,6 @@
       let gcc;
       let input_file = document.getElementById("f2c");
       let input_folder = document.getElementById("fold2c");
-      let projectName;
       let submit = $("#cb");
       
       function printErrors(file){
@@ -164,6 +145,7 @@
           printErrors('logs/gcc_errors.log') 
         }
       });
+      
     </script>
   </body>
 </html>
