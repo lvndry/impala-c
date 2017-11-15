@@ -74,22 +74,19 @@
        </div>
       </div>
     </section>
+    
     <script type="text/javascript">
-      
-          
-
+  
       const electron = require('electron');
       const ipc = electron.ipcRenderer;
 
-      let cmd;
       let errs;
       let fileName;
       let filePath;
       let fullPath;
-      let gcc;
+      let cpp;
       let input_file = document.getElementById("f2c");
       let input_folder = document.getElementById("fold2c");
-      let projectName;
       let submit = $("#cb");
       
       function printErrors(file){
@@ -132,22 +129,23 @@
       });
 
       submit.click(function(e){
-        gcc = "make 2> ./logs/cpp_errors.log"
+        cpp = "make 2> ./logs/cpp_errors.log"
         
         if($("#f2c").val().length === 0){
           $("#cpp_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
         }
         else if($("#gm:checkbox:checked").length > 0){
-          createMakeFile("gcc", fileName, filePath, function(){
-            shell.exec(gcc)
+          createMakeFile("cpp", fileName, filePath, function(){
+            shell.exec(cpp)
           });
           printErrors('logs/cpp_errors.log')
         }
         else{ 
-          shell.exec(gcc);
+          shell.exec(cpp);
           printErrors('logs/cpp_errors.log') 
         }
       });
+
     </script>
   </body>
 </html>
