@@ -10,7 +10,7 @@
     "url": "https://github.com/lvndry/Impala.git"
   },
   "scripts": {
-    "start": "electron main.js",
+    "start": "electron main.js", 
     "pack-linux-ia32": "electron-packager . --package-manager=yarn --asar --overwrite --platform=linux --arch=ia32 --icon=assets/icons/impa_logo_64.png --prune=true --out=build",
     "pack-linux-x64": "electron-packager . --package-manager=yarn --asar --overwrite --platform=linux --arch=x64 --icon=assets/icons/impa_logo_64.png --prune=true --out=build",
     "pack-win32-ia32": "electron-packager . --package-manager=yarn --asar  --overwrite --platform=win32 --arch=ia32 --icon=assets/icons/impa_logo_64.ico --prune=true --out=build --version-string.ProductName='impala'",
@@ -18,6 +18,9 @@
     "pack-mac": "electron-packager . --package-manager=yarn --asar --overwrite --platform=darwin --arch=x64 --icon=assets/icons/impa_logo_64.icns --prune=true --out=build",
     "package": "npm run pack-linux-ia32 && npm run pack-linux-x64 && npm run pack-win32-ia32 && npm run pack-win32-x64 && npm run pack-mac",
     "release": "node ./script/release.js"
+  },
+  "bin": {
+    "impala": "bin/bin.js"
   },
   "dependencies": {
     "bulma": "^0.6.1",
