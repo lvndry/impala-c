@@ -245,10 +245,8 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		cmd += "\t@$(END_TIME)"
 		cmd += "' > makefile"
 	
-	//console.log(cmd);
 	shell.exec(cmd);
 	
-	//console.log(typeof callback);
 	if(typeof callback === 'function'){
 		callback();
 	}
