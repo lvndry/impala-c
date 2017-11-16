@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>C++ Compilation</title>
 
-    <link rel=stylesheet href="../assets/style/gcc.css"> 
+    <link rel=stylesheet href="../assets/style/gcc.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
 
     <script type="text/javascript" src="../config/config.js"> </script>
@@ -14,11 +14,12 @@
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>if (window.module) module = window.module;</script>
+
   </head>
 
   <body>
-    <section class="section"> 
-      
+    <section class="section">
+
       <nav class="level">
          <div class="level-left">
          <div class="level-item" id="bm">
@@ -41,14 +42,14 @@
                     <i class="fa fa-upload"></i>
                   </span>
                   <span class="file-label">
-                    Choose a file…
+                    Select the main file…
                   </span>
                 </span>
                 <input class="file-name" id="pn" placeholder="Project Name...">
               </label>
             </div>
-            
-            <div class="makefile level-item"> 
+
+            <div class="makefile level-item">
               <label>
                 <input id="gm" type="checkbox" name="gm" checked>
                 <span>Generate a Makefile</span>
@@ -59,26 +60,18 @@
         </div>
       </div>
 
-      <div class="info hero">
-        <div class="hero-body">
-          <div class="pathname">
-            
-          </div>
-        </div>
-      </div>
       <div class="hero is-danger is-large has-text-left">
         <div class="hero-body">
           <div class="errors container" id="cpp_errors">
             <h4 class="title is-1">Errors</h4>
           </div>
-          <div id="cpp_errors_content" style="color:red">
-          </div>
+          <div id="cpp_errors_content"> </div>
        </div>
       </div>
     </section>
-    
+
     <script type="text/javascript">
-  
+
       const electron = require('electron');
       const ipc = electron.ipcRenderer;
 
@@ -88,21 +81,23 @@
       let fullPath;
       let cpp;
       let input_file = document.getElementById("f2c");
-      let input_folder = document.getElementById("fold2c");
       let submit = $("#cb");
-      
+
       function printErrors(file){
         errs = '<p class="subtitle">'
-        console.log(file);
         fs.readFile(file, 'utf8', function (err, data) {
           if (err) {
             return console.log('err: ' + err);
           }
-          errs += data.split('\n');
-          for(let i = 0, len = errs.length; i < len; i++){
-            errs[i] += '</p><pclass="subtitle">'
+
+          data = data.split('\n');
+
+          for(let i = 0, len = data.length; i < len; i++){
+            data[i] += '</p><pclass="subtitle">'
+            errs += data[i];
           }
-          errs.join('\n');
+          errs += '</p>';
+
           $("#cpp_errors_content").html(errs);
         });
       }
@@ -117,7 +112,7 @@
           fullPath = input_file.files[0].path;
           filePath = input_file.files[0].path.split('/').slice(0, -1).join('/');
           fileName = filePath.split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
-          
+
           $(".file-name").attr('placeholder', 'Project Name: (by default: ' + fileName + ")");
           $(".path").html("<span class=''>Path: " + fullPath + "</span>");
       });
@@ -131,8 +126,12 @@
       });
 
       submit.click(function(e){
-        cpp = "make 2> ./logs/cpp_errors.log"
-        
+        if (!fs.existsSync(filePath + '/logs/')) {
+          shell.mkdir(filePath + '/logs/');
+        }
+
+        gcc = "make > ./logs/make.log 2> ./logs/cpp_errors.log"
+
         if($("#f2c").val().length === 0){
           $("#cpp_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
         }
@@ -140,11 +139,11 @@
           createMakeFile("cpp", fileName, filePath, function(){
             shell.exec(cpp)
           });
-          printErrors('logs/cpp_errors.log')
+          printErrors(filePath + '/logs/cpp_errors.log')
         }
-        else{ 
+        else{
           shell.exec(cpp);
-          printErrors('logs/cpp_errors.log') 
+          printErrors(filePath + '/logs/cpp_errors.log')
         }
       });
 

@@ -1,8 +1,9 @@
 require('../config/config.js');
 require('../script/impignore.js');
 
-let excludedFiles = readImpignore();
-
+let excludedFiles = [];
+		excludedFiles = readImpignore();
+		
 function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 	let cmd = "printf '";
 		cmd += "#### MAKEFILE FOR " + execName.toUpperCase() + " ####\n"
@@ -11,25 +12,28 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		cmd += "### Project Settings ###\n"
 		cmd += "BIN_NAME := " + execName + "\n"
 		cmd += "# Compiler used\n"
-		
+
 		if(compiler === "gcc"){
 			cmd += "CC ?= " + compiler + "\n"
 			cmd += "# Extension of source files used in the project\n"
-			cmd += "SRC_EXT = c\n" 
+			cmd += "SRC_EXT = c\n"
 		}
 
 		else if(compiler === "g++"){
 			cmd += "CCXX ?= " + compiler + "\n"
 			cmd += "# Extension of source files used in the project\n"
-			cmd += "SRC_EXT = cpp\n" 
+			cmd += "SRC_EXT = cpp\n"
 		}
-		
+
 		cmd += "#Files not to compile\n"
 		cmd += "EXCLUDED= "
-		
-		for(let i = 0, len = excludedFiles.length; i < len; i++){
-			cmd += excludedFiles[i] + " ";
+
+		if(excludedFiles != 'undefined'){
+			for(let i = 0, len = excludedFiles.length; i < len; i++){
+				cmd += excludedFiles[i] + " ";
+			}
 		}
+
 		cmd += "\n";
 
 		cmd += "# Path to the source directory, relative to the makefile\n"
@@ -80,7 +84,7 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 			cmd += "release: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)\n"
 			cmd += "debug: export CFLAGS := $(CFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)\n"
 		}
-		
+
 		else if(compiler === "g++"){
 			cmd += "release: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)\n"
 			cmd += "debug: export CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)\n"
@@ -144,11 +148,11 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		cmd += "\tVERSION_HASH := $(word 5, $(VERSION))\n"
 		cmd += "\tVERSION_STRING := \\ \n"
 		cmd += "\t\t\"$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH).$(VERSION_REVISION)-$(VERSION_HASH)\"\n"
-		
+
 		if(compiler === "gcc"){
 			cmd += "\toverride CFLAGS := $(CFLAGS) \\\n"
 		}
-		
+
 		else if(compiler === "g++"){
 			cmd += "\toverride CXXFLAGS := $(CXXFLAGS) \\\n"
 		}
@@ -232,7 +236,7 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		cmd += "$(BUILD_PATH)/%%.o: $(SRC_PATH)/%%.$(SRC_EXT)\n"
 		cmd += "\t@echo \"Compiling: $< -> $@\"\n"
 		cmd += "\t@$(START_TIME)\n"
-		
+
 		if(compiler === "gcc"){
 			cmd += "\t$(CMD_PREFIX)$(CC) $(CFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@\n"
 		}
@@ -244,9 +248,9 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		cmd += "\t@echo -en \"\t Compile time: \"\n"
 		cmd += "\t@$(END_TIME)"
 		cmd += "' > makefile"
-	
+
 	shell.exec(cmd);
-	
+
 	if(typeof callback === 'function'){
 		callback();
 	}

@@ -19,3 +19,7 @@ a:hover {
     background-color: #f1f1f1;
     color: black;
 }
+
+::-webkit-input-placeholder {
+   font-size: 10px!important;
+}
