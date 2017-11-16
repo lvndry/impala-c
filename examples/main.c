@@ -1,4 +1,4 @@
-#include "ct/user.h"
+#include "c/user/user.h"
 
 int main(int argc, char const *argv[]) {
   sayHello();

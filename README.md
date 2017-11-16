@@ -1,5 +1,5 @@
 # Impala
-**Impala-c** is the best way to compile small and medium projects made in C and C++
+**Impala-c** is a tool to quickly compile small and medium projects made in C and C++
 
 ## Compiling a project
 ```
@@ -53,12 +53,15 @@ Folder after compilation:
 ```
 
 ## Installation
-You only need git and npm to install impala:
+
 ```
 git clone https://github.com/lvndry/impala-c
 cd impala-c
 npm install
 npm start
 ```
+## Next Step
+> Imapala-go
+
 ## Author
 [Landry Monga](https://github.com/lvndry)

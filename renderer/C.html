@@ -83,6 +83,8 @@
       let input_file = document.getElementById("f2c");
       let submit = $("#cb");
 
+      console.log(shell.exec('pwd'))
+
       function printErrors(file){
         errs = '<p class="subtitle">'
         fs.readFile(file, 'utf8', function (err, data) {
@@ -120,7 +122,6 @@
       $("#pn").change(function(){
           if($("#pn").val().length !== 0){
             fileName = $("#pn").val();
-            console.log(fileName);
           }
           else fileName = filePath.split('/').slice(-1)[0].split('.')[0];
       });
@@ -128,15 +129,17 @@
       submit.click(function(e){
         if (!fs.existsSync(filePath + '/logs/')) {
           shell.mkdir(filePath + '/logs/');
+          shell.exec('touch ' + filePath + '/logs/gcc_errors.log');
+          shell.exec('touch ' + filePath + '/logs/make.log');
         }
 
-        gcc = "make > ./logs/make.log 2> ./logs/gcc_errors.log"
-
+        gcc = "make -f " + filePath + "/makefile > " + filePath + "/logs/make.log 2> " + filePath + "/logs/gcc_errors.log"
+        console.log(gcc);
         if($("#f2c").val().length === 0){
           $("#gcc_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
         }
         else if($("#gm:checkbox:checked").length > 0){
-          createMakeFile("gcc", fileName, filePath, function(){
+            createMakeFile("gcc", fileName, filePath, function(){
             shell.exec(gcc)
           });
           printErrors(filePath + '/logs/gcc_errors.log')

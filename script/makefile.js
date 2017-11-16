@@ -1,9 +1,9 @@
 require('../config/config.js');
 require('../script/impignore.js');
 
-let excludedFiles = [];
+var excludedFiles = [];
 		excludedFiles = readImpignore();
-		
+
 function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 	let cmd = "printf '";
 		cmd += "#### MAKEFILE FOR " + execName.toUpperCase() + " ####\n"
@@ -93,11 +93,11 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 		cmd += "release: export LDFLAGS := $(LDFLAGS) $(LINK_FLAGS) $(RLINK_FLAGS)\n"
 		cmd += "debug: export LDFLAGS := $(LDFLAGS) $(LINK_FLAGS) $(DLINK_FLAGS)\n\n"
 		cmd += "# Build and output paths\n"
-		cmd += "release: export BUILD_PATH := build/release\n"
-		cmd += "release: export BIN_PATH := bin/release\n"
-		cmd += "debug: export BUILD_PATH := build/debug\n"
-		cmd += "debug: export BIN_PATH := bin/debug\n"
-		cmd += "install: export BIN_PATH := bin/release\n\n"
+		cmd += "release: export BUILD_PATH := " + filePath + "/build/release\n"
+		cmd += "release: export BIN_PATH := " + filePath + "/bin/release\n"
+		cmd += "debug: export BUILD_PATH := " + filePath + "/build/debug\n"
+		cmd += "debug: export BIN_PATH := " + filePath + "/bin/debug\n"
+		cmd += "install: export BIN_PATH := " + filePath + "/bin/release\n\n"
 		cmd += "# Find all source files in the source directory, sorted by most recently modified\n"
 		cmd += "ifeq ($(UNAME_S),Darwin)\n"
 		cmd += "\tSOURCES = $(shell find $(SRC_PATH) -name \"*.$(SRC_EXT)\" | sort -k 1nr | cut -f2-)\n"
@@ -247,7 +247,7 @@ function createMakeFile(compiler, execName, filePath, callback, dest="/"){
 
 		cmd += "\t@echo -en \"\t Compile time: \"\n"
 		cmd += "\t@$(END_TIME)"
-		cmd += "' > makefile"
+		cmd += "' > " + filePath + "/makefile"
 
 	shell.exec(cmd);
 
