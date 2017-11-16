@@ -128,9 +128,11 @@
       submit.click(function(e){
         if (!fs.existsSync(filePath + '/logs/')) {
           shell.mkdir(filePath + '/logs/');
+          shell.exec('touch ' + filePath + '/logs/gcc_errors.log');
+          shell.exec('touch ' + filePath + '/logs/make.log');
         }
 
-        gcc = "make > ./logs/make.log 2> ./logs/cpp_errors.log"
+        gcc = "make -f " + filePath + "/makefile > " + filePath + "/logs/make.log 2> " + filePath + "/logs/gcc_errors.log"
 
         if($("#f2c").val().length === 0){
           $("#cpp_errors_content").html("<span class='subtilte'>Nothing to compile</span>");

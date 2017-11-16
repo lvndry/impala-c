@@ -83,8 +83,6 @@
       let input_file = document.getElementById("f2c");
       let submit = $("#cb");
 
-      console.log(shell.exec('pwd'))
-
       function printErrors(file){
         errs = '<p class="subtitle">'
         fs.readFile(file, 'utf8', function (err, data) {
@@ -133,8 +131,8 @@
           shell.exec('touch ' + filePath + '/logs/make.log');
         }
 
-        gcc = "make -f " + filePath + "/makefile > " + filePath + "/logs/make.log 2> " + filePath + "/logs/gcc_errors.log"
-        console.log(gcc);
+        gcc = "make -C " + filePath + " > " + filePath + "/logs/make.log 2> " + filePath + "/logs/gcc_errors.log"
+
         if($("#f2c").val().length === 0){
           $("#gcc_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
         }
