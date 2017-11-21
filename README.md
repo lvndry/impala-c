@@ -13,13 +13,9 @@
     ├── user.c
     └── user.h
 ```
-The main file has to be in the root directory so that impala can compile all the files in the subdirectories
+The main file has to be in the root directory so that impala can compile all the files c/c++ in the subdirectories
 
-You also have the possibilty to not compile some file by passing their absolute paths in a .impignore file
-
-Impala will then generate a makefile in the root directory with also a bin directory containing the executable, a build directory with all the dependencies and a log directory
-
-Once you compiled once you can also choose not to generate a makefile
+You also have the possibilty to not compile some files by passing their absolute paths in a .impignore file
 
 Folder after compilation:
 ```
