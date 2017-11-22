@@ -39,10 +39,16 @@ function createMakeFile(compiler, execName, filePath, options = [], callback, de
   cmd += "# Space-separated pkg-config libraries used by this project\n"
   cmd += "LIBS =\n"
   cmd += "# General compiler flags\n"
-  cmd += "COMPILE_FLAGS = -Wall -Wextra -g -O3"
-  for(let i = 0; i < options.length; i ++){
-    cmd += " " + options[i];
+  cmd += "COMPILE_FLAGS = "
+
+  if(options === []){
+    cmd += "-Wall -Wextra -g -O3"
   }
+  else
+    for(let i = 0; i < options.length; i ++){
+      cmd += " " + options[i];
+    }
+
   cmd+= "\n"
   cmd += "# Additional release-specific flags\n"
   cmd += "RCOMPILE_FLAGS = -D NDEBUG\n"
