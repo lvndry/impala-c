@@ -1,41 +1,49 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <meta charset="utf-8">
-    <title>C Compilation</title>
+<head>
+  <meta charset="utf-8">
+  <title>C Compilation</title>
 
-    <link rel=stylesheet href="../assets/style/gcc.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
+  <link rel=stylesheet href="../assets/style/gcc.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.css">
 
-    <script type="text/javascript" src="../config/config.js"> </script>
-    <script type="text/javascript" src="../script/impignore.js"></script>
-    <script type="text/javascript" src="../script/makefile.js"></script>
-    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <script>if (window.module) module = window.module;</script>
+  <script type="text/javascript" src="../config/config.js">
+  </script>
+  <script type="text/javascript" src="../script/impignore.js"></script>
+  <script type="text/javascript" src="../script/makefile.js"></script>
+  <script>
+    if (typeof module === 'object') {
+      window.module = module;
+      module = undefined;
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script>
+    if (window.module) module = window.module;
+  </script>
 
-  </head>
+</head>
 
-  <body>
-    <section class="section">
+<body>
+  <section class="section">
 
-      <nav class="level">
-         <div class="level-left">
-         <div class="level-item" id="bm">
+    <nav class="level">
+      <div class="level-left">
+        <div class="level-item" id="bm">
           <a class="home" href="#"> ← Back </a>
         </div>
-        </div>
-        <div class="level-item has-text-center">
-          <h1 class="title">C compilation</h1>
-        </div>
-      </nav>
+      </div>
+      <div class="level-item has-text-center">
+        <h1 class="title">C compilation</h1>
+      </div>
+    </nav>
 
-      <div class="box">
-        <div class="container">
-          <div class="level">
-            <div class="file has-name level-item">
-              <label class="file-label">
+    <div class="box" id="build">
+      <div class="container">
+        <div class="level">
+          <div class="file has-name level-item">
+            <label class="file-label">
                 <input class="file-input" id="f2c" type="file" name="file2compile">
                 <span class="file-cta">
                   <span class="file-icon">
@@ -47,107 +55,121 @@
                 </span>
                 <input class="file-name" id="pn" placeholder="Project Name...">
               </label>
-            </div>
+          </div>
 
-            <div class="makefile level-item">
-              <label>
+          <div class="makefile level-item">
+            <label>
                 <input id="gm" type="checkbox" name="gm" checked>
                 <span>Generate a Makefile</span>
               </label>
-            </div>
-            <button class="button" id="cb" type="button" name="button">Compile</button>
+          </div>
+          <button class="button" id="cb" type="button" name="button">Make</button>
+        </div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="container">
+        <div class="level">
+          <div class="level-item">
+            <label for="">Compilation options</label>
+            <input class="input" id="coptions" type="text" name="coptions" placeholder="By default: -Wall -Wextra -g -O3">
           </div>
         </div>
       </div>
+    </div>
+    <div class="hero is-danger is-large has-text-left">
+      <div class="hero-body">
+        <div class="errors container" id="gcc_errors">
+          <h4 class="title is-1">Errors</h4>
+        </div>
+        <div id="gcc_errors_content"> </div>
+      </div>
+    </div>
+  </section>
 
-      <div class="hero is-danger is-large has-text-left">
-        <div class="hero-body">
-          <div class="errors container" id="gcc_errors">
-            <h4 class="title is-1">Errors</h4>
-          </div>
-          <div id="gcc_errors_content"> </div>
-       </div>
-     </div>
-    </section>
+  <script type="text/javascript">
+    const electron = require('electron');
+    const ipc = electron.ipcRenderer;
 
-    <script type="text/javascript">
+    let coptions;
+    let errs;
+    let fileName;
+    let filePath;
+    let fullPath;
+    let gcc;
+    let input_file = document.getElementById("f2c");
+    let submit = $("#cb");
 
-      const electron = require('electron');
-      const ipc = electron.ipcRenderer;
+    function printErrors(file) {
+      errs = '<p class="subtitle">'
+      fs.readFile(file, 'utf8', function(err, data) {
+        if (err) {
+          return console.log('err: ' + err);
+        }
 
-      let errs;
-      let fileName;
-      let filePath;
-      let fullPath;
-      let gcc;
-      let input_file = document.getElementById("f2c");
-      let submit = $("#cb");
+        data = data.split('\n');
 
-      function printErrors(file){
-        errs = '<p class="subtitle">'
-        fs.readFile(file, 'utf8', function (err, data) {
-          if (err) {
-            return console.log('err: ' + err);
-          }
+        for (let i = 0, len = data.length; i < len; i++) {
+          data[i] += '</p><pclass="subtitle">'
+          errs += data[i];
+        }
+        errs += '</p>';
 
-          data = data.split('\n');
+        $("#gcc_errors_content").html(errs);
+      });
+    }
 
-          for(let i = 0, len = data.length; i < len; i++){
-            data[i] += '</p><pclass="subtitle">'
-            errs += data[i];
-          }
-          errs += '</p>';
+    $("#bm").on('click', function(e) {
+      e.preventDefault();
+      ipc.send('goto:menu', 'index');
+    });
 
-          $("#gcc_errors_content").html(errs);
-        });
+    $("#f2c").change(function() {
+      fileNames = [];
+      filePath;
+      fullPath = input_file.files[0].path;
+      filePath = input_file.files[0].path.split('/').slice(0, -1).join('/');
+      fileName = filePath.split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
+
+      $(".file-name").attr('placeholder', 'Project Name: (by default: ' + fileName + ")");
+      $(".path").html("<span class=''>Path: " + fullPath + "</span>");
+    });
+
+    $("#pn").change(function() {
+      if ($("#pn").val().length !== 0) {
+        fileName = $("#pn").val();
+      } else fileName = filePath.split('/').slice(-1)[0].split('.')[0];
+    });
+
+    submit.click(function(e) {
+      if (!fs.existsSync(filePath + '/logs/')) {
+        shell.mkdir(filePath + '/logs/');
+        shell.exec('touch ' + filePath + '/logs/gcc_errors.log');
+        shell.exec('touch ' + filePath + '/logs/make.log');
       }
-
-      $("#bm").on('click', function(e){
-        e.preventDefault();
-        ipc.send('goto:menu', 'index');
-      });
-
-      $("#f2c").change(function(){
-          fileNames = []; filePath;
-          fullPath = input_file.files[0].path;
-          filePath = input_file.files[0].path.split('/').slice(0, -1).join('/');
-          fileName = filePath.split('/').slice(-1)[0].split('.')[0]; //Get the name of the file without the extension
-
-          $(".file-name").attr('placeholder', 'Project Name: (by default: ' + fileName + ")");
-          $(".path").html("<span class=''>Path: " + fullPath + "</span>");
-      });
-
-      $("#pn").change(function(){
-          if($("#pn").val().length !== 0){
-            fileName = $("#pn").val();
-          }
-          else fileName = filePath.split('/').slice(-1)[0].split('.')[0];
-      });
-
-      submit.click(function(e){
-        if (!fs.existsSync(filePath + '/logs/')) {
-          shell.mkdir(filePath + '/logs/');
-          shell.exec('touch ' + filePath + '/logs/gcc_errors.log');
-          shell.exec('touch ' + filePath + '/logs/make.log');
+      if ($("gm:checkbox:checked").length > 0) {
+        if (!fs.existsSync(filePath + 'makefile')) {
+          $("#build").addClass("is-danger");
+          $("#build").append("A makefile is needed");
+          return;
         }
+      }
+      coptions = $("#coptions").val().split(" ");
+      gcc = "make -C " + filePath + " > " + filePath + "/logs/make.log 2> " + filePath + "/logs/gcc_errors.log"
 
-        gcc = "make -C " + filePath + " > " + filePath + "/logs/make.log 2> " + filePath + "/logs/gcc_errors.log"
+      if ($("#f2c").val().length === 0) {
+        $("#gcc_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
+      } else if ($("#gm:checkbox:checked").length > 0) {
+        createMakeFile("gcc", fileName, filePath, coptions, function() {
+          shell.exec(gcc)
+        });
+        printErrors(filePath + '/logs/gcc_errors.log')
+      } else {
+        shell.exec(gcc);
+        printErrors(filePath + '/logs/gcc_errors.log')
+      }
+    });
+  </script>
+</body>
 
-        if($("#f2c").val().length === 0){
-          $("#gcc_errors_content").html("<span class='subtilte'>Nothing to compile</span>");
-        }
-        else if($("#gm:checkbox:checked").length > 0){
-            createMakeFile("gcc", fileName, filePath, function(){
-            shell.exec(gcc)
-          });
-          printErrors(filePath + '/logs/gcc_errors.log')
-        }
-        else{
-          shell.exec(gcc);
-          printErrors(filePath + '/logs/gcc_errors.log')
-        }
-      });
-
-    </script>
-  </body>
 </html>

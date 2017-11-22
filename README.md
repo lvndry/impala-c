@@ -56,8 +56,8 @@ cd impala-c
 npm install
 npm start
 ```
-## Next Step
-> Imapala-go
+## Imapala go
+> [Imapala-go](https://github.com/lvndry/impala-go)
 
 ## Author
 [Landry Monga](https://github.com/lvndry)
