@@ -4,7 +4,7 @@ require('../script/impignore.js');
 var excludedFiles = [];
 excludedFiles = readImpignore();
 
-function createMakeFile(compiler, execName, filePath, options = [], callback, dest = "/") {
+function createMakeFile(compiler, execName, filePath, options = [], callback) {
   let cmd = "printf '";
   cmd += "#### MAKEFILE FOR " + execName.toUpperCase() + " ####\n"
   cmd += "# The name of the executable to be created\n"
@@ -41,13 +41,13 @@ function createMakeFile(compiler, execName, filePath, options = [], callback, de
   cmd += "# General compiler flags\n"
   cmd += "COMPILE_FLAGS = "
 
-  if(options === []){
-    cmd += "-Wall -Wextra -g -O3"
-  }
-  else
+  if(options.length > 0){
     for(let i = 0; i < options.length; i ++){
       cmd += " " + options[i];
     }
+  }
+  else cmd += "-Wall -Wextra -g -O3"
+
 
   cmd+= "\n"
   cmd += "# Additional release-specific flags\n"
@@ -59,7 +59,7 @@ function createMakeFile(compiler, execName, filePath, options = [], callback, de
   cmd += "# General linker settings\n"
   cmd += "LINK_FLAGS =\n"
   cmd += "# Destination directory, like a jail or mounted system\n"
-  cmd += "DESTDIR = " + dest + "\n";
+  cmd += "DESTDIR = /\n";
   cmd += "# Install path (bin/ is appended automatically)\n"
   cmd += "INSTALL_PREFIX = usr/local\n"
   cmd += "### End Project Settings ###\n\n"
